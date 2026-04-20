@@ -10,7 +10,7 @@ import { authService } from '../api/authService';
 import googleIcon from '../assets/icons/google-icon-logo-svgrepo-com.svg';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 
-import { useAuth } from '../context/AuthContext';
+import { useAppDispatch, useAppSelector, googleLogin } from '../store';
 
 const signupSchema = z.object({
   displayName: z.string().min(2, "Name must be at least 2 characters"),
@@ -29,7 +29,8 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { googleLogin } = useAuth();
+  const dispatch = useAppDispatch();
+  const { loading: authLoading } = useAppSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -59,11 +60,15 @@ const Signup = () => {
       setLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
+      const refreshToken = result.user.refreshToken;
       
-      await googleLogin(idToken);
-      
-      toast.success("Google Sign-In successful!");
-      navigate('/dashboard');
+      const resultAction = await dispatch(googleLogin({ idToken, refreshToken }));
+      if (googleLogin.fulfilled.match(resultAction)) {
+        toast.success("Google Sign-In successful!");
+        navigate('/dashboard');
+      } else {
+        toast.error(resultAction.payload as string || "Google Sign-In failed");
+      }
     } catch (error: any) {
       toast.error(error.message || "Google Sign-In failed");
     } finally {
@@ -72,9 +77,9 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 py-12">
       <div 
-        className="w-full max-w-md p-8 rounded-3xl bg-white border border-slate-200 shadow-sm shadow-emerald-100/20"
+        className="w-full max-w-lg p-8 rounded-3xl bg-white border border-slate-200 shadow-sm shadow-emerald-100/20"
       >
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl mb-4">
@@ -82,24 +87,12 @@ const Signup = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">Join Us</h2>
-          <p className="text-slate-500">Create an account to get started</p>
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">Create Account</h2>
+          <p className="text-slate-500">Join our community to start your journey</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Full Name</label>
-            <input 
-              {...register('displayName')}
-              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
-              placeholder="Kunj Patel"
-            />
-            {errors.displayName && <p className="mt-1.5 text-xs font-medium text-red-500 ml-1">{errors.displayName.message}</p>}
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2.5 ml-1">I am a...</label>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 mb-6 p-1 bg-slate-50 rounded-2xl border border-slate-100">
               <label className={`
                 flex items-center justify-center py-3 px-4 rounded-xl border-2 cursor-pointer transition-all
                 ${errors.role ? 'border-red-200' : 'border-slate-100'}
@@ -129,13 +122,24 @@ const Signup = () => {
                 <span className="text-sm font-bold text-slate-700">Employer</span>
               </label>
             </div>
-            {errors.role && <p className="mt-1.5 text-xs font-medium text-red-500 ml-1">{errors.role.message}</p>}
+            {errors.role && <p className="text-center -mt-4 mb-4 text-xs font-medium text-red-500">{errors.role.message}</p>}
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Full Name</label>
+            <input 
+              {...register('displayName')}
+              autoComplete="name"
+              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+              placeholder="Kunj Patel" maxLength={20}
+            />
+            {errors.displayName && <p className="mt-1.5 text-xs font-medium text-red-500 ml-1">{errors.displayName.message}</p>}
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Email Address</label>
             <input 
               {...register('email')}
+              autoComplete="email"
               className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
               placeholder="name@gmail.com"
             />
@@ -148,13 +152,14 @@ const Signup = () => {
               <input 
                 type={showPassword ? "text" : "password"}
                 {...register('password')}
+                autoComplete="new-password"
                 className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400 pr-11"
-                placeholder="••••••••"
+                placeholder="••••••••" maxLength={15}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1"
               >
                 {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
               </button>
@@ -168,13 +173,14 @@ const Signup = () => {
               <input 
                 type={showConfirmPassword ? "text" : "password"}
                 {...register('confirmPassword')}
+                autoComplete="new-password"
                 className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400 pr-11"
-                placeholder="••••••••"
+                placeholder="••••••••" maxLength={15}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1"
               >
                 {showConfirmPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
               </button>
@@ -184,10 +190,10 @@ const Signup = () => {
 
           <button 
             type="submit" 
-            disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all hover:shadow-lg hover:shadow-emerald-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 active:scale-[0.98] cursor-pointer"
+            disabled={loading || authLoading}
+            className="w-full py-4 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all hover:shadow-lg hover:shadow-emerald-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 active:scale-[0.98]"
           >
-            {loading ? 'Creating Account...' : 'Sign Up'}
+            {loading || authLoading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 
@@ -199,14 +205,14 @@ const Signup = () => {
 
         <button 
           onClick={handleGoogleSignIn}
-          disabled={loading}
-          className="mt-6 w-full py-3.5 px-4 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold transition-all flex items-center justify-center space-x-3 hover:shadow-md disabled:opacity-50 active:scale-[0.98] cursor-pointer"
+          disabled={loading || authLoading}
+          className="mt-6 w-full py-3.5 px-4 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold transition-all flex items-center justify-center space-x-3 hover:shadow-md disabled:opacity-50 active:scale-[0.98]"
         >
           <img src={googleIcon} alt="Google" className="w-5 h-5" />
           <span>Continue with Google</span>
         </button>
 
-        <p className="mt-8 text-center text-slate-500 text-sm">
+        <p className="mt-8 text-center text-slate-500 text-sm font-medium">
           Already have an account?{' '}
           <Link to="/login" className="text-emerald-600 hover:text-emerald-700 font-bold transition-colors underline-offset-4 hover:underline">
             Log in

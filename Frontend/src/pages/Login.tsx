@@ -9,7 +9,7 @@ import { auth, googleProvider } from '../firebase';
 import googleIcon from '../assets/icons/google-icon-logo-svgrepo-com.svg';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 
-import { useAuth } from '../context/AuthContext';
+import { useAppDispatch, useAppSelector, login, googleLogin } from '../store';
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -20,8 +20,8 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, googleLogin } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
+  const { loading } = useAppSelector((state) => state.auth);
   const [showPassword, setShowPassword] = useState(false);
   
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
@@ -29,32 +29,30 @@ const Login = () => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    try {
-      setLoading(true);
-      await login(data);
+    const resultAction = await dispatch(login(data));
+    if (login.fulfilled.match(resultAction)) {
       toast.success("Login successful!");
       navigate('/dashboard');
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || "Login failed");
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error(resultAction.payload as string || "Login failed");
     }
   };
 
   const handleGoogleSignIn = async () => {
     try {
-      setLoading(true);
       const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
+      const refreshToken = result.user.refreshToken;
       
-      await googleLogin(idToken);
-      
-      toast.success("Google Sign-In successful!");
-      navigate('/dashboard');
+      const resultAction = await dispatch(googleLogin({ idToken, refreshToken }));
+      if (googleLogin.fulfilled.match(resultAction)) {
+        toast.success("Google Sign-In successful!");
+        navigate('/dashboard');
+      } else {
+        toast.error(resultAction.payload as string || "Google Sign-In failed");
+      }
     } catch (error: any) {
       toast.error(error.message || "Google Sign-In failed");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -78,6 +76,7 @@ const Login = () => {
             <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Email Address</label>
             <input 
               {...register('email')}
+              autoComplete="email"
               className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
               placeholder="name@gmail.com"
             />
@@ -90,13 +89,14 @@ const Login = () => {
               <input 
                 type={showPassword ? "text" : "password"}
                 {...register('password')}
+                autoComplete="current-password"
                 className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400 pr-11"
-                placeholder="••••••••"
+                placeholder="••••••••" maxLength={15}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1 cursor-pointer" 
               >
                 {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
               </button>

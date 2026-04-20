@@ -1,4 +1,4 @@
-const admin = require('../config/firebase')
+const { admin, db } = require('../config/firebase')
 
 // Utility to get the Firebase API Key
 const getApiKey = () => process.env.FIREBASE_API_KEY
@@ -74,7 +74,18 @@ exports.register = async (req, res) => {
 			await admin.auth().updateUser(data.localId, { displayName })
 		}
 
-		// 4. Set Cookies
+		// 4. Save User to Firestore
+		const userDoc = {
+			uid: data.localId,
+			email: data.email,
+			displayName: displayName || null,
+			role,
+			createdAt: admin.firestore.FieldValue.serverTimestamp(),
+			lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+		}
+		await db.collection('users').doc(data.localId).set(userDoc)
+
+		// 5. Set Cookies
 		setAuthCookies(res, data.idToken, data.refreshToken)
 
 		// Return the user data (no token in body)
@@ -133,6 +144,11 @@ exports.login = async (req, res) => {
 				.json({ error: data.error.message || 'Login failed' })
 		}
 
+		// Update lastLogin in Firestore
+		await db.collection('users').doc(data.localId).update({
+			lastLogin: admin.firestore.FieldValue.serverTimestamp()
+		}).catch(err => console.error('Error updating lastLogin:', err))
+
 		// Fetch user to get custom claims (role)
 		const userRecord = await admin.auth().getUser(data.localId)
 		const role = userRecord.customClaims?.role
@@ -157,7 +173,7 @@ exports.login = async (req, res) => {
 
 // Google Sign-In Verification Endpoint
 exports.googleSignIn = async (req, res) => {
-	const { idToken } = req.body
+	const { idToken, refreshToken } = req.body
 
 	if (!idToken) {
 		return res.status(400).json({ error: 'idToken is required' })
@@ -166,20 +182,47 @@ exports.googleSignIn = async (req, res) => {
 	try {
 		// Verify the identity of the user
 		const decodedToken = await admin.auth().verifyIdToken(idToken)
+		const { uid, email, name, picture } = decodedToken
 
-		// Note: Google client SDK usually handles the sign-in. 
-		// For refresh tokens with Google, the flow usually happens on the client.
-		// Here we just set the cookie for the current session.
-		res.cookie('token', idToken, cookieOptions)
+		// Sync with Firestore
+		const userRef = db.collection('users').doc(uid)
+		const userDoc = await userRef.get()
+
+		let role = decodedToken.role
+
+		if (!userDoc.exists) {
+			// First-time Google login - we don't know the role yet
+			role = req.body.role || 'candidate' 
+			
+			await admin.auth().setCustomUserClaims(uid, { role })
+			
+			await userRef.set({
+				uid,
+				email,
+				displayName: name || null,
+				role,
+				createdAt: admin.firestore.FieldValue.serverTimestamp(),
+				lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+			})
+		} else {
+			// Existing user - update lastLogin
+			role = userDoc.data().role
+			await userRef.update({
+				lastLogin: admin.firestore.FieldValue.serverTimestamp()
+			})
+		}
+
+		// Set Cookies (both access and refresh)
+		setAuthCookies(res, idToken, refreshToken)
 
 		res.status(200).json({
 			message: 'Google Sign-In successful',
 			user: {
-				uid: decodedToken.uid,
-				email: decodedToken.email,
-				name: decodedToken.name,
-				picture: decodedToken.picture,
-				role: decodedToken.role, // If already set
+				uid,
+				email,
+				displayName: name,
+				picture,
+				role,
 			},
 		})
 	} catch (error) {

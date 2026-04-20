@@ -1,40 +1,36 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
+import { useEffect, type ReactNode } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { store, useAppDispatch, useAppSelector } from './store';
+import { checkAuth } from './store';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import RecruiterDashboard from './pages/RecruiterDashboard';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import NavBar from './components/NavBar';
 
 const ProtectedRoute = ({ 
   children, 
   requiredRole 
 }: { 
-  children: React.ReactNode, 
+  children: ReactNode, 
   requiredRole?: 'candidate' | 'recruiter' 
 }) => {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading } = useAppSelector((state) => state.auth);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && user?.role !== requiredRole) {
-    // If a recruiter tries to access the candidate dashboard (/dashboard),
-    // they should be redirected to their own dashboard.
-    if (user?.role === 'recruiter' && !requiredRole) {
-       return <Navigate to="/recruiter/dashboard" replace />;
-    }
+  if (requiredRole && user.role !== requiredRole) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -42,45 +38,76 @@ const ProtectedRoute = ({
 };
 
 const DashboardRedirector = () => {
-  const { user } = useAuth();
+  const { user } = useAppSelector((state) => state.auth);
   
   if (user?.role === 'recruiter') {
     return <Navigate to="/recruiter/dashboard" replace />;
   }
-  // For candidates, stay on /dashboard (renders via the parent route)
+  
   return <Dashboard />;
 };
 
+const DashboardLayout = ({ children }: { children: ReactNode }) => {
+  return (
+    <div>
+      <NavBar />
+      <div className="content">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const AppContent = () => {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(checkAuth());
+  }, [dispatch]);
+
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      
+      {/* Protected Dashboard Routes */}
+      <Route 
+        path="/dashboard" 
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <DashboardRedirector />
+            </DashboardLayout>
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/recruiter/dashboard" 
+        element={
+          <ProtectedRoute requiredRole="recruiter">
+            <DashboardLayout>
+              <RecruiterDashboard />
+            </DashboardLayout>
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Redirect empty path to dashboard */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+}
+
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <DashboardRedirector />
-              </ProtectedRoute>
-            } 
-          />
-
-          <Route 
-            path="/recruiter/dashboard" 
-            element={
-              <ProtectedRoute requiredRole="recruiter">
-                <RecruiterDashboard />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-        <ToastContainer position="bottom-right" theme="dark" />
-      </Router>
-    </AuthProvider>
+    <Provider store={store}>
+      <AppContent />
+    </Provider>
   );
 }
 
