@@ -106,9 +106,6 @@ const Login = () => {
             {errors.password && <p className="mt-1.5 text-xs font-medium text-red-500 ml-1">{errors.password.message}</p>}
           </div>
 
-          <div className="flex items-center justify-end">
-            <a href="#" className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">Forgot password?</a>
-          </div>
 
           <button 
             type="submit" 
