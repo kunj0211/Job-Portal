@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,9 +6,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
-import { authService } from '../api/authService';
 import googleIcon from '../assets/icons/google-icon-logo-svgrepo-com.svg';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
+
+import { useAuth } from '../context/AuthContext';
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -19,6 +20,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, googleLogin } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
@@ -29,9 +31,7 @@ const Login = () => {
   const onSubmit = async (data: LoginFormValues) => {
     try {
       setLoading(true);
-      const response = await authService.login(data);
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      await login(data);
       toast.success("Login successful!");
       navigate('/dashboard');
     } catch (error: any) {
@@ -47,9 +47,7 @@ const Login = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
       
-      const response = await authService.verifyGoogleAuth(idToken);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      localStorage.setItem('token', idToken);
+      await googleLogin(idToken);
       
       toast.success("Google Sign-In successful!");
       navigate('/dashboard');
@@ -81,7 +79,7 @@ const Login = () => {
             <input 
               {...register('email')}
               className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400"
-              placeholder="name@company.com"
+              placeholder="name@gmail.com"
             />
             {errors.email && <p className="mt-1.5 text-xs font-medium text-red-500 ml-1">{errors.email.message}</p>}
           </div>
@@ -98,7 +96,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1 cursor-pointer"
               >
                 {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
               </button>
@@ -110,7 +108,7 @@ const Login = () => {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all hover:shadow-lg hover:shadow-emerald-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 active:scale-[0.98]"
+            className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all hover:shadow-lg hover:shadow-emerald-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 active:scale-[0.98] cursor-pointer"
           >
             {loading ? 'Authenticating...' : 'Sign In'}
           </button>
@@ -125,7 +123,7 @@ const Login = () => {
         <button 
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="mt-6 w-full py-3.5 px-4 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold transition-all flex items-center justify-center space-x-3 hover:shadow-md disabled:opacity-50 active:scale-[0.98]"
+          className="mt-6 w-full py-3.5 px-4 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold transition-all flex items-center justify-center space-x-3 hover:shadow-md disabled:opacity-50 active:scale-[0.98] cursor-pointer"
         >
           <img src={googleIcon} alt="Google" className="w-5 h-5" />
           <span>Continue with Google</span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,11 +10,16 @@ import { authService } from '../api/authService';
 import googleIcon from '../assets/icons/google-icon-logo-svgrepo-com.svg';
 import { HiEye, HiEyeOff } from 'react-icons/hi';
 
+import { useAuth } from '../context/AuthContext';
+
 const signupSchema = z.object({
   displayName: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters")
+  confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters"),
+  role: z.enum(['candidate', 'recruiter'], {
+    message: "Please select your role"
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -24,12 +29,16 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { googleLogin } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { register, handleSubmit, formState: { errors } } = useForm<SignupFormValues>({
-    resolver: zodResolver(signupSchema)
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      role: 'candidate'
+    }
   });
 
   const onSubmit = async (data: SignupFormValues) => {
@@ -51,9 +60,7 @@ const Signup = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
       
-      const response = await authService.verifyGoogleAuth(idToken);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      localStorage.setItem('token', idToken);
+      await googleLogin(idToken);
       
       toast.success("Google Sign-In successful!");
       navigate('/dashboard');
@@ -91,6 +98,41 @@ const Signup = () => {
           </div>
 
           <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2.5 ml-1">I am a...</label>
+            <div className="grid grid-cols-2 gap-4">
+              <label className={`
+                flex items-center justify-center py-3 px-4 rounded-xl border-2 cursor-pointer transition-all
+                ${errors.role ? 'border-red-200' : 'border-slate-100'}
+                hover:border-emerald-200 hover:bg-emerald-50/50
+                has-checked:border-emerald-500 has-checked:bg-emerald-50
+              `}>
+                <input 
+                  type="radio" 
+                  value="candidate" 
+                  {...register('role')} 
+                  className="sr-only"
+                />
+                <span className="text-sm font-bold text-slate-700">Job Seeker</span>
+              </label>
+              <label className={`
+                flex items-center justify-center py-3 px-4 rounded-xl border-2 cursor-pointer transition-all
+                ${errors.role ? 'border-red-200' : 'border-slate-100'}
+                hover:border-emerald-200 hover:bg-emerald-50/50
+                has-checked:border-emerald-500 has-checked:bg-emerald-50
+              `}>
+                <input 
+                  type="radio" 
+                  value="recruiter" 
+                  {...register('role')} 
+                  className="sr-only"
+                />
+                <span className="text-sm font-bold text-slate-700">Employer</span>
+              </label>
+            </div>
+            {errors.role && <p className="mt-1.5 text-xs font-medium text-red-500 ml-1">{errors.role.message}</p>}
+          </div>
+
+          <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5 ml-1">Email Address</label>
             <input 
               {...register('email')}
@@ -112,7 +154,7 @@ const Signup = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1 cursor-pointer"
               >
                 {showPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
               </button>
@@ -132,7 +174,7 @@ const Signup = () => {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition-colors p-1 cursor-pointer"
               >
                 {showConfirmPassword ? <HiEyeOff size={20} /> : <HiEye size={20} />}
               </button>
@@ -143,7 +185,7 @@ const Signup = () => {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all hover:shadow-lg hover:shadow-emerald-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 active:scale-[0.98]"
+            className="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all hover:shadow-lg hover:shadow-emerald-200 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 disabled:opacity-50 active:scale-[0.98] cursor-pointer"
           >
             {loading ? 'Creating Account...' : 'Sign Up'}
           </button>
@@ -158,7 +200,7 @@ const Signup = () => {
         <button 
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="mt-6 w-full py-3.5 px-4 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold transition-all flex items-center justify-center space-x-3 hover:shadow-md disabled:opacity-50 active:scale-[0.98]"
+          className="mt-6 w-full py-3.5 px-4 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold transition-all flex items-center justify-center space-x-3 hover:shadow-md disabled:opacity-50 active:scale-[0.98] cursor-pointer"
         >
           <img src={googleIcon} alt="Google" className="w-5 h-5" />
           <span>Continue with Google</span>
