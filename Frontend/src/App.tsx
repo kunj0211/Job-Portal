@@ -10,6 +10,7 @@ import RecruiterDashboard from './pages/RecruiterDashboard'
 import AddJob from './pages/AddJob'
 import NavBar from './components/NavBar'
 import BrowseJob from './pages/BrowseJob'
+import RecruiterApplications from './pages/RecruiterApplications'
 
 const ProtectedRoute = ({
 	children,
@@ -109,6 +110,17 @@ const AppContent = () => {
 					<ProtectedRoute requiredRole='recruiter'>
 						<DashboardLayout>
 							<AddJob />
+						</DashboardLayout>
+					</ProtectedRoute>
+				}
+			/>
+
+			<Route
+				path='/recruiter/applications'
+				element={
+					<ProtectedRoute requiredRole='recruiter'>
+						<DashboardLayout>
+							<RecruiterApplications />
 						</DashboardLayout>
 					</ProtectedRoute>
 				}

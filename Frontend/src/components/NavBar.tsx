@@ -41,8 +41,37 @@ const NavBar = () => {
 						</NavLink>
 
 						{user?.role === 'recruiter' && (
+							<>
+								<NavLink
+									to='/recruiter/jobs/manage'
+									className={({ isActive }) =>
+										`px-4 py-2 text-sm font-bold transition-all ${
+											isActive
+												? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-100/50'
+												: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+										}`
+									}
+								>
+									Add / Manage Jobs
+								</NavLink>
+								<NavLink
+									to='/recruiter/applications'
+									className={({ isActive }) =>
+										`px-4 py-2 text-sm font-bold transition-all ${
+											isActive
+												? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-100/50'
+												: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+										}`
+									}
+								>
+									Applicants
+								</NavLink>
+							</>
+						)}
+
+						{user?.role !== 'recruiter' && (
 							<NavLink
-								to='/recruiter/jobs/manage'
+								to='/candidate/browseJobs'
 								className={({ isActive }) =>
 									`px-4 py-2 text-sm font-bold transition-all ${
 										isActive
@@ -51,22 +80,9 @@ const NavBar = () => {
 									}`
 								}
 							>
-								Add / Manage Jobs
+								Browse Jobs
 							</NavLink>
 						)}
-
-						<NavLink
-							to='/candidate/browseJobs'
-							className={({ isActive }) =>
-								`px-4 py-2 text-sm font-bold transition-all ${
-									isActive
-										? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-100/50'
-										: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-								}`
-							}
-						>
-							Browse Jobs
-						</NavLink>
 
 						{user && (
 							<button

@@ -21,4 +21,10 @@ router.put('/:id', jobController.updateJob)
 // DELETE /api/jobs/:id -> Delete a specific job
 router.delete('/:id', jobController.deleteJob)
 
+// POST /api/jobs/:id/apply -> Apply for a specific job
+router.post('/:id/apply', jobController.applyForJob)
+
+// GET /api/jobs/applications -> Get all applications for recruiter's jobs
+router.get('/applications', jobController.getRecruiterApplications)
+
 module.exports = router
