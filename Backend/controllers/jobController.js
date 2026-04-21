@@ -175,12 +175,32 @@ exports.deleteJob = async (req, res) => {
 // Get all jobs for job seekers to browse (public endpoint)
 exports.getAllJobs = async (req, res) => {
 	try {
+		const { keyword, location } = req.query;
 		const jobsSnapshot = await db.collection('jobs').get()
 
-		const jobs = []
+		let jobs = []
 		jobsSnapshot.forEach((doc) => {
 			jobs.push({ id: doc.id, ...doc.data() })
 		})
+
+		if (keyword && typeof keyword === 'string') {
+			const query = keyword.trim().toLowerCase();
+			if (query) {
+				jobs = jobs.filter((job) => {
+					const title = (job.title || '').toLowerCase();
+					const company = (job.company || '').toLowerCase();
+					const location = (job.location || '').toLowerCase();
+					const description = (job.description || '').toLowerCase();
+					
+					return (
+						title.includes(query) ||
+						company.includes(query) ||
+						location.includes(query) ||
+						description.includes(query)
+					);
+				});
+			}
+		}
 
 		// Sort jobs by createdAt descending
 		jobs.sort((a, b) => {
@@ -198,6 +218,48 @@ exports.getAllJobs = async (req, res) => {
 		res.status(200).json({ jobs })
 	} catch (error) {
 		console.error('Get all jobs error:', error)
+		res.status(500).json({ error: 'Internal server error' })
+	}
+}
+
+// Apply for a job
+exports.applyForJob = async (req, res) => {
+	try {
+		const { id } = req.params
+		const candidateId = req.user.uid
+
+		const jobRef = db.collection('jobs').doc(id)
+		const jobDoc = await jobRef.get()
+
+		if (!jobDoc.exists) {
+			return res.status(404).json({ error: 'Job not found' })
+		}
+
+		if (req.user.role === 'recruiter') {
+			return res.status(403).json({ error: 'Recruiters cannot apply for jobs' })
+		}
+
+		const applicationsSnapshot = await db
+			.collection('applications')
+			.where('jobId', '==', id)
+			.where('candidateId', '==', candidateId)
+			.get()
+
+		if (!applicationsSnapshot.empty) {
+			return res.status(400).json({ error: 'You have already applied for this job' })
+		}
+
+		const newApplication = {
+			jobId: id,
+			candidateId,
+			appliedAt: admin.firestore.FieldValue.serverTimestamp(),
+		}
+
+		const docRef = await db.collection('applications').add(newApplication)
+
+		res.status(201).json({ message: 'Applied successfully', applicationId: docRef.id })
+	} catch (error) {
+		console.error('Apply for job error:', error)
 		res.status(500).json({ error: 'Internal server error' })
 	}
 }

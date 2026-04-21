@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { jobService } from '../api/jobService'
 import JobDetail from '../components/JobDetail'
+import { HiSearch } from 'react-icons/hi'
 
 interface Job {
 	id: string
@@ -20,33 +21,82 @@ const BrowseJob = () => {
 	const [error, setError] = useState<string | null>(null)
 	const [isOpen, setIsOpen] = useState<boolean>(false)
 	const [selectedJob, setSelectedJob] = useState<Job>()
+	const [keyword, setKeyword] = useState<string>('')
+	const [abortController, setAbortController] = useState<AbortController | null>(null)
 
-	useEffect(() => {
-		const fetchJobs = async () => {
-			try {
-				setLoading(true)
-				const data = await jobService.getAllJobs()
-				setJobs(data.jobs || [])
-				setError(null)
-			} catch (err: any) {
-				console.error('Error fetching jobs:', err)
-				const errorMessage =
-					err.response?.data?.error ||
-					err.message ||
-					'Failed to load jobs'
-				setError(errorMessage)
-				setJobs([])
-			} finally {
-				setLoading(false)
-			}
+	const fetchJobs = async (searchParams?: { keyword?: string; location?: string }) => {
+		// Abort any pending request
+		if (abortController) {
+			abortController.abort()
 		}
 
-		fetchJobs()
-	}, [])
+		const controller = new AbortController()
+		setAbortController(controller)
+
+		try {
+			setLoading(true)
+			const data = await jobService.getAllJobs({
+				...(searchParams || {}),
+				signal: controller.signal
+			})
+			
+			let filteredJobs = data.jobs || []
+			
+			// Frontend filtering fallback
+			const query = (searchParams?.keyword || keyword || '').trim().toLowerCase()
+			if (query) {
+				filteredJobs = filteredJobs.filter((job: Job) => 
+					(job.title || '').toLowerCase().includes(query) ||
+					(job.company || '').toLowerCase().includes(query) ||
+					(job.location || '').toLowerCase().includes(query) ||
+					(job.description || '').toLowerCase().includes(query)
+				)
+			}
+
+			setJobs(filteredJobs)
+			setError(null)
+		} catch (err: any) {
+			if (err.name === 'CanceledError' || err.name === 'AbortError') {
+				// Request was aborted, ignore error
+				return
+			}
+			console.error('Error fetching jobs:', err)
+			const errorMessage =
+				err.response?.data?.error ||
+				err.message ||
+				'Failed to load jobs'
+			setError(errorMessage)
+			setJobs([])
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	useEffect(() => {
+		const debounceTimer = setTimeout(() => {
+			fetchJobs({ keyword })
+		}, 300) // 300ms debounce
+
+		return () => clearTimeout(debounceTimer)
+	}, [keyword])
 
 	return (
 		<>
 			<div className='min-h-screen max-w-7xl mx-auto px-4 py-12'>
+				<div className='mb-8 flex justify-end items-center'>
+					<div className='relative w-full max-w-xs'>
+						<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+							<HiSearch className='text-slate-400' size={18} />
+						</div>
+						<input
+							type='text'
+							placeholder='Search jobs...'
+							className='block w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 bg-white transition-all outline-none text-sm'
+							value={keyword}
+							onChange={(e) => setKeyword(e.target.value)}
+						/>
+					</div>
+				</div>
 				<div className='flex flex-wrap gap-2 '>
 					{loading && (
 						<p className='text-lg text-slate-600'>
@@ -55,8 +105,11 @@ const BrowseJob = () => {
 					)}
 					{error && <p className='text-lg text-red-600'>{error}</p>}
 					{!loading && !error && jobs?.length === 0 && (
-						<p className='text-lg text-slate-600'>
-							No jobs available at the moment.
+						<p className='text-lg text-slate-600 px-4'>
+							{keyword.trim() 
+								? `No jobs found matching "${keyword}"`
+								: 'No jobs available at the moment.'
+							}
 						</p>
 					)}
 					<div className='flex flex-wrap gap-4 w-full m-3'>
