@@ -1,4 +1,7 @@
 import { HiX } from 'react-icons/hi'
+import { LuBriefcaseBusiness, LuMapPin } from 'react-icons/lu'
+import { MdWork, MdOutlineDescription } from 'react-icons/md'
+import { FaWallet } from 'react-icons/fa'
 
 interface Job {
 	id: string
@@ -41,20 +44,23 @@ const JobDetail = ({
 				<div className='p-6 overflow-y-auto'>
 					<div className='space-y-4'>
 						<div>
-							<p className='text-lg text-slate-600'>
+							<p className='text-lg text-slate-600 flex items-center gap-4'>
+								<LuBriefcaseBusiness size={16} />
 								{job.company}
 							</p>
 						</div>
 						<div>
-							<p className='text-md text-slate-600'>
-								<span className='font-medium text-emerald-600'>
+							<p className='text-md text-slate-600 flex items-center gap-4'>
+								<LuMapPin size={16} />
+								<span className='font-medium text-emerald-600 flex items-center gap-1'>
 									Location:
-								</span>{' '}
+								</span>
 								{job.location}
 							</p>
 						</div>
 						<div>
-							<p className='text-md text-slate-600'>
+							<p className='text-md text-slate-600 flex items-center gap-4'>
+								<MdWork size={16} />
 								<span className='font-medium text-emerald-600'>
 									Job Type:
 								</span>{' '}
@@ -63,7 +69,8 @@ const JobDetail = ({
 						</div>
 						{job.salaryRange && (
 							<div>
-								<p className='text-md text-slate-600'>
+								<p className='text-md text-slate-600 flex items-center gap-4'>
+									<FaWallet size={16} />
 									<span className='font-medium text-emerald-600'>
 										Salary Range:
 									</span>{' '}
@@ -73,7 +80,8 @@ const JobDetail = ({
 						)}
 						{job.experience && (
 							<div>
-								<p className='text-md text-slate-600'>
+								<p className='text-md text-slate-600 flex items-center gap-4'>
+									<LuBriefcaseBusiness size={16} />
 									<span className='font-medium text-emerald-600'>
 										Experience:
 									</span>{' '}
@@ -81,8 +89,11 @@ const JobDetail = ({
 								</p>
 							</div>
 						)}
-						<p className='font-medium text-emerald-600'>
-							Description:
+						<p className='  flex items-center gap-4'>
+							<MdOutlineDescription size={16} />
+							<span className='font-medium text-emerald-600'>
+								Description:
+							</span>
 						</p>
 						{job.description && (
 							<div>
