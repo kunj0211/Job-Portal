@@ -90,7 +90,7 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 							onClose()
 							reset()
 						}}
-						className='p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors'
+						className=' text-slate-400 hover:text-red-500 transition-colors'
 					>
 						<HiX size={19} />
 					</button>

@@ -1,8 +1,8 @@
 import { HiX } from 'react-icons/hi'
-import { LuBriefcaseBusiness, LuMapPin } from 'react-icons/lu'
-import { MdWork, MdOutlineDescription } from 'react-icons/md'
+import { MdLocationPin } from 'react-icons/md'
+import { LuClock8, LuUser } from 'react-icons/lu'
 import { FaWallet } from 'react-icons/fa'
-
+import { MdOutlineDescription } from 'react-icons/md'
 interface Job {
 	id: string
 	title: string
@@ -35,7 +35,7 @@ const JobDetail = ({
 					</h2>
 					<button
 						onClick={onClose}
-						className='p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors'
+						className=' hover:text-red-500 transition-colors'
 					>
 						<HiX size={19} />
 					</button>
@@ -44,23 +44,28 @@ const JobDetail = ({
 				<div className='p-6 overflow-y-auto'>
 					<div className='space-y-4'>
 						<div>
-							<p className='text-lg text-slate-600 flex items-center gap-4'>
-								<LuBriefcaseBusiness size={16} />
+							<p className='text-lg text-slate-600 flex items-center gap-2'>
 								{job.company}
 							</p>
 						</div>
 						<div>
-							<p className='text-md text-slate-600 flex items-center gap-4'>
-								<LuMapPin size={16} />
-								<span className='font-medium text-emerald-600 flex items-center gap-1'>
+							<p className='text-md text-slate-600 flex items-center gap-2'>
+								<MdLocationPin
+									className='inline-block mr-1'
+									size={16}
+								/>
+								<span className='font-medium text-emerald-600'>
 									Location:
 								</span>
 								{job.location}
 							</p>
 						</div>
 						<div>
-							<p className='text-md text-slate-600 flex items-center gap-4'>
-								<MdWork size={16} />
+							<p className='text-md text-slate-600 flex items-center gap-2'>
+								<LuClock8
+									className='inline-block mr-1'
+									size={16}
+								/>
 								<span className='font-medium text-emerald-600'>
 									Job Type:
 								</span>{' '}
@@ -69,8 +74,11 @@ const JobDetail = ({
 						</div>
 						{job.salaryRange && (
 							<div>
-								<p className='text-md text-slate-600 flex items-center gap-4'>
-									<FaWallet size={16} />
+								<p className='text-md text-slate-600 flex items-center gap-2'>
+									<FaWallet
+										className='inline-block mr-1'
+										size={16}
+									/>
 									<span className='font-medium text-emerald-600'>
 										Salary Range:
 									</span>{' '}
@@ -80,8 +88,11 @@ const JobDetail = ({
 						)}
 						{job.experience && (
 							<div>
-								<p className='text-md text-slate-600 flex items-center gap-4'>
-									<LuBriefcaseBusiness size={16} />
+								<p className='text-md text-slate-600 flex items-center gap-2'>
+									<LuUser
+										className='inline-block mr-1'
+										size={16}
+									/>
 									<span className='font-medium text-emerald-600'>
 										Experience:
 									</span>{' '}
@@ -89,8 +100,12 @@ const JobDetail = ({
 								</p>
 							</div>
 						)}
-						<p className='  flex items-center gap-4'>
-							<MdOutlineDescription size={16} />
+						<p className='text-md text-slate-600flex items-center gap-2'>
+							<MdOutlineDescription
+								className='inline-block mr-1'
+								size={16}
+							/>
+
 							<span className='font-medium text-emerald-600'>
 								Description:
 							</span>
