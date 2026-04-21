@@ -81,6 +81,9 @@ const JobDetail = ({
 								</p>
 							</div>
 						)}
+						<p className='font-medium text-emerald-600'>
+							Description:
+						</p>
 						{job.description && (
 							<div>
 								<p className='text-md text-slate-600 whitespace-pre-line'>
