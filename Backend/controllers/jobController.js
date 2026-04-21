@@ -20,11 +20,9 @@ exports.createJob = async (req, res) => {
 
 		const validJobTypes = ['Full-time', 'Part-time', 'Internship']
 		if (!validJobTypes.includes(jobType)) {
-			return res
-				.status(400)
-				.json({
-					error: "Invalid job type. Must be 'Full-time', 'Part-time', or 'Internship'.",
-				})
+			return res.status(400).json({
+				error: "Invalid job type. Must be 'Full-time', 'Part-time', or 'Internship'.",
+			})
 		}
 
 		const newJob = {
@@ -112,11 +110,9 @@ exports.updateJob = async (req, res) => {
 		if (updates.jobType) {
 			const validJobTypes = ['Full-time', 'Part-time', 'Internship']
 			if (!validJobTypes.includes(updates.jobType)) {
-				return res
-					.status(400)
-					.json({
-						error: "Invalid job type. Must be 'Full-time', 'Part-time', or 'Internship'.",
-					})
+				return res.status(400).json({
+					error: "Invalid job type. Must be 'Full-time', 'Part-time', or 'Internship'.",
+				})
 			}
 		}
 
@@ -175,7 +171,7 @@ exports.deleteJob = async (req, res) => {
 // Get all jobs for job seekers to browse (public endpoint)
 exports.getAllJobs = async (req, res) => {
 	try {
-		const { keyword, location } = req.query;
+		const { keyword } = req.query
 		const jobsSnapshot = await db.collection('jobs').get()
 
 		let jobs = []
@@ -184,21 +180,21 @@ exports.getAllJobs = async (req, res) => {
 		})
 
 		if (keyword && typeof keyword === 'string') {
-			const query = keyword.trim().toLowerCase();
+			const query = keyword.trim().toLowerCase()
 			if (query) {
 				jobs = jobs.filter((job) => {
-					const title = (job.title || '').toLowerCase();
-					const company = (job.company || '').toLowerCase();
-					const location = (job.location || '').toLowerCase();
-					const description = (job.description || '').toLowerCase();
-					
+					const title = (job.title || '').toLowerCase()
+					const company = (job.company || '').toLowerCase()
+					const location = (job.location || '').toLowerCase()
+					const description = (job.description || '').toLowerCase()
+
 					return (
 						title.includes(query) ||
 						company.includes(query) ||
 						location.includes(query) ||
 						description.includes(query)
-					);
-				});
+					)
+				})
 			}
 		}
 
@@ -236,7 +232,9 @@ exports.applyForJob = async (req, res) => {
 		}
 
 		if (req.user.role === 'recruiter') {
-			return res.status(403).json({ error: 'Recruiters cannot apply for jobs' })
+			return res
+				.status(403)
+				.json({ error: 'Recruiters cannot apply for jobs' })
 		}
 
 		const applicationsSnapshot = await db
@@ -246,7 +244,9 @@ exports.applyForJob = async (req, res) => {
 			.get()
 
 		if (!applicationsSnapshot.empty) {
-			return res.status(400).json({ error: 'You have already applied for this job' })
+			return res
+				.status(400)
+				.json({ error: 'You have already applied for this job' })
 		}
 
 		const newApplication = {
@@ -257,9 +257,121 @@ exports.applyForJob = async (req, res) => {
 
 		const docRef = await db.collection('applications').add(newApplication)
 
-		res.status(201).json({ message: 'Applied successfully', applicationId: docRef.id })
+		res.status(201).json({
+			message: 'Applied successfully',
+			applicationId: docRef.id,
+		})
 	} catch (error) {
 		console.error('Apply for job error:', error)
+		res.status(500).json({ error: 'Internal server error' })
+	}
+}
+
+// Get applications for recruiter's jobs
+exports.getRecruiterApplications = async (req, res) => {
+	try {
+		const recruiterId = req.user.uid
+
+		const jobsSnapshot = await db
+			.collection('jobs')
+			.where('recruiterId', '==', recruiterId)
+			.get()
+
+		if (jobsSnapshot.empty) {
+			return res.status(200).json({ applications: [] })
+		}
+
+		const jobMap = {}
+		const jobIds = []
+		jobsSnapshot.forEach((doc) => {
+			const data = doc.data()
+			jobIds.push(doc.id)
+			jobMap[doc.id] = {
+				id: doc.id,
+				title: data.title,
+				company: data.company,
+				applicants: [],
+			}
+		})
+
+		const applicationsSnapshot = await db
+			.collection('applications')
+			.where('jobId', 'in', jobIds)
+			.get()
+
+		if (applicationsSnapshot.empty) {
+			return res.status(200).json({ applications: Object.values(jobMap) })
+		}
+
+		const applications = []
+		const candidateIds = new Set()
+		applicationsSnapshot.forEach((doc) => {
+			const data = doc.data()
+			applications.push({ id: doc.id, ...data })
+			candidateIds.add(data.candidateId)
+		})
+
+		const userIds = Array.from(candidateIds)
+		const candidatesMap = {}
+
+		for (let i = 0; i < userIds.length; i += 30) {
+			const chunk = userIds.slice(i, i + 30)
+			const userRefs = chunk.map((uid) => db.collection('users').doc(uid))
+
+			const userDocs = await db.getAll(...userRefs)
+			const missingFromFirestore = []
+
+			userDocs.forEach((doc, index) => {
+				if (doc.exists) {
+					candidatesMap[doc.id] = doc.data()
+				} else {
+					missingFromFirestore.push(chunk[index])
+				}
+			})
+
+			// Fallback to Firebase Auth if some users are missing from Firestore
+			if (missingFromFirestore.length > 0) {
+				console.log(
+					`[Debug] ${missingFromFirestore.length} candidates missing from Firestore. Trying Auth fallback...`,
+				)
+				try {
+					const identifiers = missingFromFirestore.map((uid) => ({
+						uid,
+					}))
+					const authResults = await admin.auth().getUsers(identifiers)
+
+					authResults.users.forEach((userRecord) => {
+						console.log(
+							`[Debug] Found user in Auth fallback: ${userRecord.email}`,
+						)
+						candidatesMap[userRecord.uid] = {
+							displayName: userRecord.displayName,
+							email: userRecord.email,
+							uid: userRecord.uid,
+						}
+					})
+				} catch (authErr) {
+					console.error('[Debug] Auth fallback failed:', authErr)
+				}
+			}
+		}
+
+		applications.forEach((app) => {
+			if (jobMap[app.jobId]) {
+				const candidateDetail = candidatesMap[app.candidateId]
+				jobMap[app.jobId].applicants.push({
+					applicationId: app.id,
+					candidateId: app.candidateId,
+					name: candidateDetail?.displayName || 'Unknown Candidate',
+					email: candidateDetail?.email || 'No email',
+					appliedAt: app.appliedAt,
+				})
+			}
+		})
+
+		res.status(200).json({ applications: Object.values(jobMap) })
+	} catch (error) {
+		console.error('Get recruiter applications error:', error)
 		res.status(500).json({ error: 'Internal server error' })
 	}
 }
