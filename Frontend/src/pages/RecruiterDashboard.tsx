@@ -1,27 +1,20 @@
-import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector, logout } from '../store';
+import { useAppSelector } from '../store';
 
 const RecruiterDashboard = () => {
   const { user } = useAppSelector((state) => state.auth);
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await dispatch(logout());
-    navigate('/login');
-  };
 
   if (!user) return null;
 
   return (
-    <div className="p-8 font-sans">
-      <h1 className="text-2xl font-bold mb-6 text-slate-800">Hii Employer</h1>
-      <button 
-        onClick={handleLogout} 
-        className="px-6 py-2.5 border-2 border-indigo-500 text-indigo-600 font-bold rounded-xl transition-all hover:bg-indigo-500 hover:text-white active:scale-95 cursor-pointer shadow-sm hover:shadow-indigo-200"
-      >
-        Logout
-      </button>
+    <div className="p-8 font-sans max-w-7xl mx-auto">
+      <div className="bg-white/80 backdrop-blur-md p-10 rounded-3xl border border-emerald-100 shadow-sm text-center mt-10">
+        <h1 className="text-4xl font-bold text-slate-800 tracking-tight mb-4">
+          Hii Employer
+        </h1>
+        <p className="text-xl text-slate-500">
+          Welcome back to your dashboard, {user.displayName}.
+        </p>
+      </div>
     </div>
   );
 };

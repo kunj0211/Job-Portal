@@ -4,6 +4,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
 const authRoutes = require('./routes/authRoutes');
+const jobRoutes = require('./routes/jobRoutes');
 const { verifyToken } = require('./middleware/authMiddleware');
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/jobs', jobRoutes);
 
 // Example of a Protected Route
 app.get('/api/protected', verifyToken, (req, res) => {
