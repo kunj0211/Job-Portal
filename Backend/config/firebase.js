@@ -24,4 +24,6 @@ try {
   console.log('Ensure FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY are set in .env');
 }
 
-module.exports = admin;
+const db = admin.firestore();
+
+module.exports = { admin, db };
