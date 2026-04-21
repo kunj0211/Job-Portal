@@ -1,15 +1,11 @@
 import { HiX } from 'react-icons/hi'
-<<<<<<< HEAD
 import { MdLocationPin } from 'react-icons/md'
 import { LuClock8, LuUser } from 'react-icons/lu'
 import { FaWallet } from 'react-icons/fa'
 import { MdOutlineDescription } from 'react-icons/md'
-=======
 import { useState, useEffect } from 'react'
 import { useAppSelector } from '../store'
 import { jobService } from '../api/jobService'
-
->>>>>>> feature/applyjob
 interface Job {
 	id: string
 	title: string
