@@ -12,6 +12,8 @@ import NavBar from './components/NavBar'
 import BrowseJob from './pages/BrowseJob'
 import RecruiterApplications from './pages/RecruiterApplications'
 import Profile from './pages/Profile'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const ProtectedRoute = ({
 	children,
@@ -148,6 +150,7 @@ function App() {
 	return (
 		<Provider store={store}>
 			<AppContent />
+			<ToastContainer position='top-right' autoClose={3000} />
 		</Provider>
 	)
 }

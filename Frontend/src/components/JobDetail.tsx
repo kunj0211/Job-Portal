@@ -6,6 +6,7 @@ import { MdOutlineDescription } from 'react-icons/md'
 import { useState, useEffect } from 'react'
 import { useAppSelector } from '../store'
 import { jobService } from '../api/jobService'
+import { toast } from 'react-toastify'
 interface Job {
 	id: string
 	title: string
@@ -29,14 +30,9 @@ const JobDetail = ({
 }) => {
 	const { user } = useAppSelector((state) => state.auth)
 	const [loading, setLoading] = useState(false)
-	const [message, setMessage] = useState<{
-		type: 'success' | 'error'
-		text: string
-	} | null>(null)
 
 	// Reset state when a different job is selected or the modal is opened/closed
 	useEffect(() => {
-		setMessage(null)
 		setLoading(false)
 	}, [job?.id, isOpen])
 
@@ -45,19 +41,16 @@ const JobDetail = ({
 	const handleApply = async () => {
 		try {
 			setLoading(true)
-			setMessage(null)
 			const response = await jobService.applyForJob(job.id)
-			setMessage({
-				type: 'success',
-				text: response.message || 'Applied successfully!',
-			})
+			toast.success(response.message || 'Applied successfully!')
+			onClose()
 		} catch (err: any) {
 			console.error('Error applying for job:', err)
 			const errorMessage =
 				err.response?.data?.error ||
 				err.message ||
 				'Failed to apply for job'
-			setMessage({ type: 'error', text: errorMessage })
+			toast.error(errorMessage)
 		} finally {
 			setLoading(false)
 		}
@@ -79,17 +72,6 @@ const JobDetail = ({
 				</div>
 
 				<div className='p-6 overflow-y-auto'>
-					{message && (
-						<div
-							className={`mb-4 p-3 rounded-lg text-sm font-medium ${
-								message.type === 'success'
-									? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-									: 'bg-red-50 text-red-700 border border-red-100'
-							}`}
-						>
-							{message.text}
-						</div>
-					)}
 					<div className='space-y-4'>
 						<div>
 							<p className='text-lg text-slate-600 flex items-center gap-2'>
@@ -148,7 +130,7 @@ const JobDetail = ({
 								</p>
 							</div>
 						)}
-						<p className='text-md text-slate-600flex items-center gap-2'>
+						<p className='text-md text-slate-600 flex items-center gap-2'>
 							<MdOutlineDescription
 								className='inline-block mr-1'
 								size={16}
@@ -172,18 +154,14 @@ const JobDetail = ({
 					<div className='px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end'>
 						<button
 							onClick={handleApply}
-							disabled={loading || message?.type === 'success'}
+							disabled={loading}
 							className={`px-8 py-2.5 rounded-xl font-bold text-white transition-all shadow-md active:scale-95 ${
-								loading || message?.type === 'success'
+								loading
 									? 'bg-slate-400 cursor-not-allowed'
 									: 'bg-emerald-600 hover:bg-emerald-700'
 							}`}
 						>
-							{loading
-								? 'Applying...'
-								: message?.type === 'success'
-									? 'Applied'
-									: 'Apply Now'}
+							{loading ? 'Applying...' : 'Apply Now'}
 						</button>
 					</div>
 				)}

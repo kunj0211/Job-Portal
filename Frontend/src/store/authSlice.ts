@@ -6,6 +6,10 @@ export interface User {
   email: string;
   displayName: string | null;
   role: 'candidate' | 'recruiter';
+  resumeUrl?: string;
+  title?: string;
+  experience?: string;
+  skills?: string[];
 }
 
 export interface AuthState {

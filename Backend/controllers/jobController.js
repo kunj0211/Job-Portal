@@ -370,6 +370,7 @@ exports.getRecruiterApplications = async (req, res) => {
 					candidateId: app.candidateId,
 					name: candidateDetail?.displayName || 'Unknown Candidate',
 					email: candidateDetail?.email || 'No email',
+					resumeUrl: app.resumeUrl || null,
 					appliedAt: app.appliedAt,
 				})
 			}

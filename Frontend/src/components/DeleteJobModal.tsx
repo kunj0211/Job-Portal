@@ -19,13 +19,13 @@ const DeleteJobModal = ({
 		<div className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity'>
 			<div className='bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col transform transition-all'>
 				<div className='px-6 py-4 border-b border-slate-100 flex  items-center bg-slate-50/50'>
-					<h2 className='text-xl font-bold text-slate-800 flex gap-2 text-center justify-center items-center w-full'>
+					<h2 className='text-xl font-bold text-slate-800 flex gap-2  w-full'>
 						Confirm Deletion
 					</h2>
 					<button
 						onClick={onClose}
 						disabled={isDeleting}
-						className='p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 rounded-full '
+						className=' text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50 '
 					>
 						<HiX size={24} />
 					</button>

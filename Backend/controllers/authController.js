@@ -179,6 +179,10 @@ exports.login = async (req, res) => {
 				email: data.email,
 				displayName: data.displayName,
 				role,
+				resumeUrl: userDoc.exists ? userDoc.data().resumeUrl : undefined,
+				title: userDoc.exists ? userDoc.data().title : undefined,
+				experience: userDoc.exists ? userDoc.data().experience : undefined,
+				skills: userDoc.exists ? userDoc.data().skills : undefined,
 			},
 		})
 	} catch (error) {
@@ -239,6 +243,10 @@ exports.googleSignIn = async (req, res) => {
 				displayName: name,
 				picture,
 				role,
+				resumeUrl: userDoc.exists ? userDoc.data().resumeUrl : undefined,
+				title: userDoc.exists ? userDoc.data().title : undefined,
+				experience: userDoc.exists ? userDoc.data().experience : undefined,
+				skills: userDoc.exists ? userDoc.data().skills : undefined,
 			},
 		})
 	} catch (error) {
@@ -299,13 +307,14 @@ exports.checkAuth = async (req, res) => {
 		const { uid } = req.user
 		const userRecord = await admin.auth().getUser(uid)
 		let role = userRecord.customClaims?.role
+		let resumeUrl = undefined
 
-		// Fallback to Firestore if role is missing in custom claims
-		if (!role) {
-			const userDoc = await db.collection('users').doc(uid).get()
-			if (userDoc.exists) {
+		const userDoc = await db.collection('users').doc(uid).get()
+		if (userDoc.exists) {
+			if (!role) {
 				role = userDoc.data().role
 			}
+			resumeUrl = userDoc.data().resumeUrl
 		}
 		
 		res.status(200).json({
@@ -314,6 +323,10 @@ exports.checkAuth = async (req, res) => {
 				email: userRecord.email,
 				displayName: userRecord.displayName,
 				role: role || 'candidate', // Default to candidate if still missing
+				resumeUrl,
+				title: userDoc.exists ? userDoc.data().title : undefined,
+				experience: userDoc.exists ? userDoc.data().experience : undefined,
+				skills: userDoc.exists ? userDoc.data().skills : undefined,
 			}
 		})
 	} catch (error) {
@@ -326,7 +339,7 @@ exports.checkAuth = async (req, res) => {
 exports.updateProfile = async (req, res) => {
 	try {
 		const { uid } = req.user
-		const { displayName, resumeUrl } = req.body
+		const { displayName, resumeUrl, title, experience, skills } = req.body
 
 		const userRef = db.collection('users').doc(uid)
 		const userDoc = await userRef.get()
@@ -338,6 +351,9 @@ exports.updateProfile = async (req, res) => {
 		const updates = {}
 		if (displayName !== undefined) updates.displayName = displayName
 		if (resumeUrl !== undefined) updates.resumeUrl = resumeUrl
+		if (title !== undefined) updates.title = title
+		if (experience !== undefined) updates.experience = experience
+		if (skills !== undefined) updates.skills = skills
 
 		if (Object.keys(updates).length === 0) {
 			return res.status(400).json({ error: 'No fields to update' })

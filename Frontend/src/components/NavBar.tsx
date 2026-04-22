@@ -31,7 +31,7 @@ const NavBar = () => {
 							}
 							end
 							className={({ isActive }) =>
-								`px-4 py-2 text-sm font-bold transition-all ${
+								`px-4 py-2 text-sm font-bold transition-all rounded-xs ${
 									isActive
 										? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-100/50'
 										: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -46,7 +46,7 @@ const NavBar = () => {
 								<NavLink
 									to='/recruiter/jobs/manage'
 									className={({ isActive }) =>
-										`px-4 py-2 text-sm font-bold transition-all ${
+										`px-4 py-2 text-sm font-bold transition-all rounded-xs ${
 											isActive
 												? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-100/50'
 												: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -58,7 +58,7 @@ const NavBar = () => {
 								<NavLink
 									to='/recruiter/applications'
 									className={({ isActive }) =>
-										`px-4 py-2 text-sm font-bold transition-all ${
+										`px-4 py-2 text-sm font-bold transition-all rounded-xs ${
 											isActive
 												? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-100/50'
 												: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -75,7 +75,7 @@ const NavBar = () => {
 								<NavLink
 									to='/candidate/browseJobs'
 									className={({ isActive }) =>
-										`px-4 py-2 text-sm font-bold transition-all ${
+										`px-4 py-2 text-sm font-bold transition-all rounded-xs ${
 											isActive
 												? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-100/50'
 												: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -87,7 +87,7 @@ const NavBar = () => {
 								<NavLink
 									to='/candidate/profile'
 									className={({ isActive }) =>
-										`px-4 py-2 text-sm font-bold transition-all ${
+										`px-4 py-2 text-sm font-bold transition-all rounded-xs ${
 											isActive
 												? 'bg-emerald-100 text-emerald-700 shadow-sm shadow-emerald-100/50'
 												: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'

@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react'
 import { jobService } from '../api/jobService'
-import { HiOutlineUserCircle, HiCheckCircle } from 'react-icons/hi'
+import {
+	HiOutlineUserCircle,
+	HiCheckCircle,
+	HiOutlineDocumentText,
+} from 'react-icons/hi'
 
 interface Applicant {
 	applicationId: string
 	candidateId: string
 	name: string
 	email: string
+	resumeUrl?: string
 	appliedAt: any
 }
 
@@ -112,20 +117,40 @@ const RecruiterApplications = () => {
 										{job.applicants.map((app) => (
 											<div
 												key={app.applicationId}
-												className='flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all group'
+												className='flex flex-col p-5 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all group'
 											>
-												<div className='flex-1 min-w-0'>
-													<p className='text-sm font-bold text-slate-900 truncate'>
-														{app.name}
-													</p>
-													<p className='text-xs text-slate-500 truncate'>
-														{app.email}
-													</p>
+												<div className='flex items-center gap-4 mb-4'>
+													<div className='flex-1 min-w-0'>
+														<p className='text-sm font-bold text-slate-900 truncate'>
+															{app.name}
+														</p>
+														<p className='text-xs text-slate-500 truncate'>
+															{app.email}
+														</p>
+													</div>
+													<HiCheckCircle
+														size={20}
+														className='text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity'
+													/>
 												</div>
-												<HiCheckCircle
-													size={20}
-													className='text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity'
-												/>
+
+												{app.resumeUrl ? (
+													<a
+														href={app.resumeUrl}
+														target='_blank'
+														rel='noreferrer'
+														className='w-full py-2 bg-white text-emerald-600 text-xs font-bold rounded-xl border border-emerald-100 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all text-center flex items-center justify-center gap-2'
+													>
+														<HiOutlineDocumentText
+															size={16}
+														/>
+														View CV / Resume
+													</a>
+												) : (
+													<div className='w-full py-2 bg-slate-50 text-slate-400 text-[10px] font-bold rounded-xl border border-slate-100 text-center uppercase tracking-wider'>
+														No CV /Resume provided
+													</div>
+												)}
 											</div>
 										))}
 									</div>

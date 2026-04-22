@@ -59,7 +59,13 @@ export const authService = {
 		const response = await axios.get(`${API_URL}/me`)
 		return response.data
 	},
-	updateProfile: async (profileData: { displayName?: string; resumeUrl?: string }) => {
+	updateProfile: async (profileData: { 
+		displayName?: string; 
+		resumeUrl?: string;
+		title?: string;
+		experience?: string;
+		skills?: string[];
+	}) => {
 		const response = await axios.put(`${API_URL}/profile`, profileData)
 		return response.data
 	},
