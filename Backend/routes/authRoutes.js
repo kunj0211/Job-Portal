@@ -10,6 +10,7 @@ router.post('/google-signin', authController.googleSignIn);
 
 // Profile and Refresh routes
 router.get('/me', verifyToken, authController.checkAuth);
+router.put('/profile', verifyToken, authController.updateProfile);
 router.post('/refresh', authController.refreshTokens);
 router.post('/logout', authController.logout);
 

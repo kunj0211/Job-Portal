@@ -45,4 +45,8 @@ export const jobService = {
 		const response = await axios.get(`${API_URL}/applications`)
 		return response.data
 	},
+	getMyApplications: async () => {
+		const response = await axios.get(`${API_URL}/my-applications`)
+		return response.data
+	},
 }

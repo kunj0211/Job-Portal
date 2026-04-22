@@ -249,10 +249,16 @@ exports.applyForJob = async (req, res) => {
 				.json({ error: 'You have already applied for this job' })
 		}
 
+		// Fetch candidate profile to get resumeUrl
+		const userDoc = await db.collection('users').doc(candidateId).get()
+		const resumeUrl = userDoc.exists ? userDoc.data().resumeUrl : null
+
 		const newApplication = {
 			jobId: id,
 			candidateId,
+			resumeUrl: resumeUrl || null,
 			appliedAt: admin.firestore.FieldValue.serverTimestamp(),
+			status: 'pending', // Add status field
 		}
 
 		const docRef = await db.collection('applications').add(newApplication)
@@ -372,6 +378,60 @@ exports.getRecruiterApplications = async (req, res) => {
 		res.status(200).json({ applications: Object.values(jobMap) })
 	} catch (error) {
 		console.error('Get recruiter applications error:', error)
+		res.status(500).json({ error: 'Internal server error' })
+	}
+}
+
+// Get applications for the logged-in candidate
+exports.getCandidateApplications = async (req, res) => {
+	try {
+		const candidateId = req.user.uid
+
+		const applicationsSnapshot = await db
+			.collection('applications')
+			.where('candidateId', '==', candidateId)
+			.get()
+
+		if (applicationsSnapshot.empty) {
+			return res.status(200).json({ applications: [] })
+		}
+
+		const applications = []
+		const jobIds = []
+		applicationsSnapshot.forEach((doc) => {
+			const data = doc.data()
+			applications.push({ id: doc.id, ...data })
+			jobIds.push(data.jobId)
+		})
+
+		// Fetch job details for each application
+		const jobMap = {}
+		for (let i = 0; i < jobIds.length; i += 30) {
+			const chunk = jobIds.slice(i, i + 30)
+			const jobRefs = chunk.map((id) => db.collection('jobs').doc(id))
+			const jobDocs = await db.getAll(...jobRefs)
+			jobDocs.forEach((doc) => {
+				if (doc.exists) {
+					jobMap[doc.id] = { id: doc.id, ...doc.data() }
+				}
+			})
+		}
+
+		const result = applications.map((app) => ({
+			...app,
+			job: jobMap[app.jobId] || { title: 'Unknown Position', company: 'Unknown Company' },
+		}))
+
+		// Sort by appliedAt descending
+		result.sort((a, b) => {
+			const timeA = a.appliedAt && typeof a.appliedAt.toDate === 'function' ? a.appliedAt.toDate().getTime() : 0
+			const timeB = b.appliedAt && typeof b.appliedAt.toDate === 'function' ? b.appliedAt.toDate().getTime() : 0
+			return timeB - timeA
+		})
+
+		res.status(200).json({ applications: result })
+	} catch (error) {
+		console.error('Get candidate applications error:', error)
 		res.status(500).json({ error: 'Internal server error' })
 	}
 }

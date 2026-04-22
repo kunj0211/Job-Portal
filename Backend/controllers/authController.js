@@ -144,14 +144,30 @@ exports.login = async (req, res) => {
 				.json({ error: data.error.message || 'Login failed' })
 		}
 
-		// Update lastLogin in Firestore
-		await db.collection('users').doc(data.localId).update({
-			lastLogin: admin.firestore.FieldValue.serverTimestamp()
-		}).catch(err => console.error('Error updating lastLogin:', err))
+		// Update lastLogin in Firestore (and create document if missing)
+		const userRef = db.collection('users').doc(data.localId)
+		const userDoc = await userRef.get()
 
-		// Fetch user to get custom claims (role)
+		// Fetch user record to get custom claims (role)
 		const userRecord = await admin.auth().getUser(data.localId)
-		const role = userRecord.customClaims?.role
+		let role = userRecord.customClaims?.role || 'candidate'
+
+		if (!userDoc.exists) {
+			console.log(`[Auth] Creating missing Firestore document for user ${data.localId}`)
+			await userRef.set({
+				uid: data.localId,
+				email: data.email,
+				displayName: data.displayName || null,
+				role,
+				createdAt: admin.firestore.FieldValue.serverTimestamp(),
+				lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+			})
+		} else {
+			await userRef.update({
+				lastLogin: admin.firestore.FieldValue.serverTimestamp()
+			})
+			role = userDoc.data().role || role
+		}
 
 		// Set Cookies
 		setAuthCookies(res, data.idToken, data.refreshToken)
@@ -280,18 +296,74 @@ exports.logout = (req, res) => {
 exports.checkAuth = async (req, res) => {
 	try {
 		// verifyToken middleware already populated req.user
-		const userRecord = await admin.auth().getUser(req.user.uid)
+		const { uid } = req.user
+		const userRecord = await admin.auth().getUser(uid)
+		let role = userRecord.customClaims?.role
+
+		// Fallback to Firestore if role is missing in custom claims
+		if (!role) {
+			const userDoc = await db.collection('users').doc(uid).get()
+			if (userDoc.exists) {
+				role = userDoc.data().role
+			}
+		}
 		
 		res.status(200).json({
 			user: {
 				uid: userRecord.uid,
 				email: userRecord.email,
 				displayName: userRecord.displayName,
-				role: userRecord.customClaims?.role,
+				role: role || 'candidate', // Default to candidate if still missing
 			}
 		})
 	} catch (error) {
 		console.error('Check Auth error:', error)
+		res.status(500).json({ error: 'Internal server error' })
+	}
+}
+
+// Update User Profile
+exports.updateProfile = async (req, res) => {
+	try {
+		const { uid } = req.user
+		const { displayName, resumeUrl } = req.body
+
+		const userRef = db.collection('users').doc(uid)
+		const userDoc = await userRef.get()
+
+		if (!userDoc.exists) {
+			return res.status(404).json({ error: 'User not found' })
+		}
+
+		const updates = {}
+		if (displayName !== undefined) updates.displayName = displayName
+		if (resumeUrl !== undefined) updates.resumeUrl = resumeUrl
+
+		if (Object.keys(updates).length === 0) {
+			return res.status(400).json({ error: 'No fields to update' })
+		}
+
+		// Update Auth display name if provided
+		if (displayName) {
+			await admin.auth().updateUser(uid, { displayName })
+		}
+
+		await userRef.update({
+			...updates,
+			updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+		})
+
+		const updatedDoc = await userRef.get()
+
+		res.status(200).json({
+			message: 'Profile updated successfully',
+			user: {
+				id: updatedDoc.id,
+				...updatedDoc.data(),
+			},
+		})
+	} catch (error) {
+		console.error('Update profile error:', error)
 		res.status(500).json({ error: 'Internal server error' })
 	}
 }

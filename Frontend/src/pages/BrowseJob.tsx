@@ -90,7 +90,7 @@ const BrowseJob = () => {
 						</div>
 						<input
 							type='text'
-							placeholder='Search jobs...'
+							placeholder='Search jobs, companies, or locations...'
 							className='block w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 bg-white transition-all outline-none text-sm'
 							value={keyword}
 							onChange={(e) => setKeyword(e.target.value)}

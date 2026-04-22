@@ -11,6 +11,7 @@ import AddJob from './pages/AddJob'
 import NavBar from './components/NavBar'
 import BrowseJob from './pages/BrowseJob'
 import RecruiterApplications from './pages/RecruiterApplications'
+import Profile from './pages/Profile'
 
 const ProtectedRoute = ({
 	children,
@@ -89,6 +90,16 @@ const AppContent = () => {
 					<ProtectedRoute>
 						<DashboardLayout>
 							<BrowseJob />
+						</DashboardLayout>
+					</ProtectedRoute>
+				}
+			/>
+			<Route
+				path='/candidate/profile'
+				element={
+					<ProtectedRoute>
+						<DashboardLayout>
+							<Profile />
 						</DashboardLayout>
 					</ProtectedRoute>
 				}
