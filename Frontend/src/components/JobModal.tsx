@@ -109,7 +109,7 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 								</label>
 								<input
 									{...register('title')}
-									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
+									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
 									placeholder='Frontend Developer'
 								/>
 								{errors.title && (
@@ -125,7 +125,7 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 								</label>
 								<input
 									{...register('company')}
-									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
+									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
 									placeholder='Tech Corp'
 								/>
 								{errors.company && (
@@ -141,7 +141,7 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 								</label>
 								<input
 									{...register('location')}
-									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
+									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
 									placeholder='Remote or On-Site or Hybrid'
 								/>
 								{errors.location && (
@@ -157,7 +157,7 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 								</label>
 								<select
 									{...register('jobType')}
-									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
+									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
 								>
 									<option value='Full-time'>Full-time</option>
 									<option value='Part-time'>Part-time</option>
@@ -180,7 +180,7 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 								</label>
 								<input
 									{...register('salaryRange')}
-									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
+									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
 									placeholder='2 lakh - 4 lakh'
 								/>
 								{errors.salaryRange && (
@@ -196,7 +196,7 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 								</label>
 								<input
 									{...register('experience')}
-									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
+									className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
 									placeholder='2-3 years, or Fresher'
 								/>
 								{errors.experience && (
@@ -214,7 +214,7 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 							<textarea
 								{...register('description')}
 								rows={5}
-								className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none'
+								className='w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none'
 								placeholder='Describe the role, responsibilities, and requirements...'
 							></textarea>
 							{errors.description && (
