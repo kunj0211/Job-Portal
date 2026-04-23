@@ -2,8 +2,15 @@ import { useEffect, useState } from 'react'
 import { useAppSelector } from '../store'
 import { useNavigate } from 'react-router-dom'
 import { jobService } from '../api/jobService'
-import { HiCheckCircle, HiClock } from 'react-icons/hi'
-import { MdLocationPin, MdOutlineWorkOutline } from 'react-icons/md'
+import {
+	HiClock,
+	HiOutlineBriefcase,
+	HiOutlineSearch,
+	HiOutlineTrendingUp,
+	HiOutlineCheckCircle,
+	HiOutlineXCircle,
+} from 'react-icons/hi'
+import { MdLocationPin, MdDashboard } from 'react-icons/md'
 
 interface Application {
 	id: string
@@ -47,120 +54,272 @@ const Dashboard = () => {
 
 	if (!user) return null
 
+	const stats = {
+		total: applications.length,
+		pending: applications.filter(a => !a.status || a.status === 'pending').length,
+		accepted: applications.filter(a => a.status === 'accepted').length,
+		rejected: applications.filter(a => a.status === 'rejected').length,
+	}
+
+	// Dynamic Profile Completeness Calculation
+	const calculateCompleteness = () => {
+		let score = 0;
+		const totalFields = 5;
+		
+		if (user.displayName) score++;
+		if (user.title) score++;
+		if (user.experience) score++;
+		if (user.skills && user.skills.length > 0) score++;
+		if (user.resumeUrl) score++;
+		
+		return Math.round((score / totalFields) * 100);
+	}
+
+	const completeness = calculateCompleteness();
+
 	return (
-		<div className='min-h-screen bg-slate-50 py-12'>
-			<div className='max-w-6xl mx-auto px-4'>
-				<div className='flex justify-between items-center mb-8'>
-					<div>
-						<h1 className='text-3xl font-bold text-slate-900'>
-							Candidate Dashboard
-						</h1>
-						<p className='text-slate-500'>
-							Welcome back, {user.displayName || 'Candidate'}
-						</p>
-					</div>
-				</div>
-
-				<div className='bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden'>
-					<div className='px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-white'>
-						<h3 className='text-xl font-bold text-slate-800 flex items-center gap-2'>
-							<MdOutlineWorkOutline
-								className='text-emerald-500'
-								size={24}
-							/>
-							My Applications
-						</h3>
-						<span className='px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-xs'>
-							{applications.length} Total
+		<div className='p-8 font-sans max-w-7xl mx-auto bg-slate-50/50 min-h-screen'>
+			{/* Header */}
+			<div className='mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4'>
+				<div>
+					<h1 className='text-3xl font-black text-slate-900 tracking-tight mb-2 flex items-center gap-3'>
+						<MdDashboard className='text-emerald-500' />
+						Job Seeker Dashboard
+					</h1>
+					<p className='text-slate-500 font-medium'>
+						Welcome back,{' '}
+						<span className='text-slate-800 font-bold'>
+							{user.displayName || 'Candidate'}
 						</span>
+						. Track your applications and find your next opportunity.
+					</p>
+				</div>
+				<div className='flex gap-3'>
+					<button
+						onClick={() => navigate('/candidate/browseJobs')}
+						className='px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-emerald-200 flex items-center gap-2 cursor-pointer'
+					>
+						<HiOutlineSearch size={18} /> Browse New Jobs
+					</button>
+				</div>
+			</div>
+
+			{loading ? (
+				<div className='flex justify-center items-center h-64'>
+					<div className='w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin'></div>
+				</div>
+			) : (
+				<>
+					{/* Stats Grid */}
+					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10'>
+						{/* Total Applied */}
+						<div className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group'>
+							<div className='absolute -right-6 -top-6 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
+							<div className='relative z-10'>
+								<div className='w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-4'>
+									<HiOutlineBriefcase size={24} />
+								</div>
+								<h3 className='text-3xl font-black text-slate-900 mb-1'>
+									{stats.total}
+								</h3>
+								<p className='text-sm font-bold text-slate-500'>
+									Applied Jobs
+								</p>
+							</div>
+						</div>
+
+						{/* Pending Review */}
+						<div className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group'>
+							<div className='absolute -right-6 -top-6 w-24 h-24 bg-amber-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
+							<div className='relative z-10'>
+								<div className='w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-4'>
+									<HiClock size={24} />
+								</div>
+								<h3 className='text-3xl font-black text-slate-900 mb-1'>
+									{stats.pending}
+								</h3>
+								<p className='text-sm font-bold text-slate-500'>
+									Pending Review
+								</p>
+							</div>
+						</div>
+
+						{/* Accepted */}
+						<div className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group'>
+							<div className='absolute -right-6 -top-6 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
+							<div className='relative z-10'>
+								<div className='w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-4'>
+									<HiOutlineCheckCircle size={24} />
+								</div>
+								<h3 className='text-3xl font-black text-slate-900 mb-1'>
+									{stats.accepted}
+								</h3>
+								<p className='text-sm font-bold text-slate-500'>
+									Accepted
+								</p>
+							</div>
+						</div>
+
+						{/* Rejected */}
+						<div className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group'>
+							<div className='absolute -right-6 -top-6 w-24 h-24 bg-red-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
+							<div className='relative z-10'>
+								<div className='w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-4'>
+									<HiOutlineXCircle size={24} />
+								</div>
+								<h3 className='text-3xl font-black text-slate-900 mb-1'>
+									{stats.rejected}
+								</h3>
+								<p className='text-sm font-bold text-slate-500'>
+									Rejected
+								</p>
+							</div>
+						</div>
 					</div>
 
-					<div className='divide-y divide-slate-100'>
-						{loading ? (
-							<div className='p-12 text-center'>
-								<div className='inline-block w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin'></div>
-								<p className='mt-4 text-slate-500'>
-									Loading applications...
-								</p>
-							</div>
-						) : error ? (
-							<div className='p-12 text-center text-red-500'>
-								{error}
-							</div>
-						) : applications.length === 0 ? (
-							<div className='p-12 text-center'>
-								<p className='text-slate-400 italic mb-4'>
-									You haven't applied for any jobs yet.
-								</p>
+					<div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+						{/* Recent Applications Feed */}
+						<div className='lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden'>
+							<div className='px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50'>
+								<h2 className='text-lg font-bold text-slate-800 flex items-center gap-2'>
+									<HiOutlineTrendingUp className='text-emerald-500' />
+									Application Status
+								</h2>
 								<button
-									onClick={() =>
-										navigate('/candidate/browseJobs')
-									}
-									className='px-8 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-200'
+									onClick={() => navigate('/candidate/browseJobs')}
+									className='link-theme text-sm'
 								>
-									Find Jobs Now
+									Find More
 								</button>
 							</div>
-						) : (
-							applications.map((app) => (
-								<div
-									key={app.id}
-									className='p-8 hover:bg-slate-50/50 transition-colors'
-								>
-									<div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
-										<div>
-											<h4 className='text-lg font-bold text-slate-900 mb-1'>
-												{app.job.title}
-											</h4>
-											<div className='flex flex-wrap gap-4 text-sm text-slate-600 flex-col'>
-												<span className='font-medium flex items-center gap-1'>
-													<MdOutlineWorkOutline className='text-slate-400' />
-													{app.job.company}
-												</span>
-												<span className='flex items-center gap-1'>
-													<MdLocationPin className='text-slate-400' />
-													{app.job.location}
-												</span>
 
-												<span className='flex items-center gap-1'>
-													<HiClock className='text-slate-400' />
+							<div className='divide-y divide-slate-100'>
+								{error ? (
+									<div className='p-12 text-center text-red-500 font-medium'>
+										{error}
+									</div>
+								) : applications.length === 0 ? (
+									<div className='p-12 text-center'>
+										<p className='text-slate-400 italic mb-6'>
+											You haven't applied for any jobs yet.
+										</p>
+										<button
+											onClick={() => navigate('/candidate/browseJobs')}
+											className='link-theme'
+										>
+											Browse Job Openings
+										</button>
+									</div>
+								) : (
+									applications.map((app) => (
+										<div
+											key={app.id}
+											className='p-6 hover:bg-slate-50 transition-colors flex items-center justify-between gap-4'
+										>
+											<div className='flex items-center gap-4'>
+												<div className='w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 font-bold text-sm'>
+													{app.job.company.charAt(0).toUpperCase()}
+												</div>
+												<div>
+													<p className='text-base font-bold text-slate-900'>
+														{app.job.title}
+													</p>
+													<div className='flex items-center gap-3 mt-1'>
+														<p className='text-sm font-medium text-slate-600'>
+															{app.job.company}
+														</p>
+														<span className='w-1 h-1 bg-slate-300 rounded-full'></span>
+														<p className='text-sm text-slate-500 flex items-center gap-1'>
+															<MdLocationPin className='text-slate-400' />
+															{app.job.location}
+														</p>
+													</div>
+												</div>
+											</div>
+											<div className='flex flex-col items-end gap-2'>
+												<span
+													className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+														app.status === 'accepted'
+															? 'bg-emerald-100 text-emerald-700'
+															: app.status === 'rejected'
+															? 'bg-red-100 text-red-700'
+															: 'bg-amber-100 text-amber-700'
+													}`}
+												>
+													{app.status || 'Pending'}
+												</span>
+												<span className='text-[10px] font-bold text-slate-400'>
 													{app.appliedAt
 														? new Date(
-																app.appliedAt
-																	._seconds *
-																	1000,
-															).toLocaleDateString()
-														: 'N/A'}
+																app.appliedAt._seconds * 1000
+														  ).toLocaleDateString()
+														: 'Recent'}
 												</span>
 											</div>
 										</div>
-										<div className='flex items-center gap-3'>
-											<span
-												className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${
-													app.status === 'accepted'
-														? 'bg-emerald-100 text-emerald-700'
-														: app.status ===
-															  'rejected'
-															? 'bg-red-100 text-red-700'
-															: 'bg-amber-100 text-amber-700'
-												}`}
-											>
-												{app.status || 'Pending'}
+									))
+								)}
+							</div>
+						</div>
+
+						{/* Sidebar / Profile Completeness */}
+						<div className='space-y-6'>
+							<div className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm'>
+								<h3 className='text-lg font-bold text-slate-800 mb-4'>
+									Profile Completeness
+								</h3>
+								<div className='relative pt-1'>
+									<div className='flex mb-2 items-center justify-between'>
+										<div>
+											<span className='text-xs font-bold inline-block py-1 px-2 uppercase rounded-full text-emerald-600 bg-emerald-100'>
+												{completeness === 100 ? 'Complete' : 'Professional'}
 											</span>
-											{app.status === 'accepted' && (
-												<HiCheckCircle
-													className='text-emerald-500'
-													size={24}
-												/>
-											)}
+										</div>
+										<div className='text-right'>
+											<span className='text-xs font-bold inline-block text-emerald-600'>
+												{completeness}%
+											</span>
 										</div>
 									</div>
+									<div className='overflow-hidden h-2 mb-4 text-xs flex rounded bg-emerald-100'>
+										<div
+											style={{ width: `${completeness}%` }}
+											className='shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-emerald-500 transition-all duration-1000'
+										></div>
+									</div>
+									<p className='text-xs text-slate-500 leading-relaxed'>
+										{completeness === 100 
+											? 'Your profile is fully updated! You are ready to land your dream job.' 
+											: 'Adding a professional profile picture and updating your skills increases your chances of getting hired!'}
+									</p>
+									<button 
+										onClick={() => navigate('/candidate/profile')}
+										className='mt-4 w-full py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-200'
+									>
+										{completeness === 100 ? 'View Profile' : 'Complete Profile'}
+									</button>
 								</div>
-							))
-						)}
+							</div>
+
+							<div className='bg-linear-to-br from-emerald-600 to-teal-800 rounded-3xl p-6 text-white shadow-lg shadow-emerald-900/20 relative overflow-hidden'>
+								<div className='absolute right-10 top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl'></div>
+								<h3 className='text-xl font-bold mb-2 relative z-10'>
+									Stay Ahead
+								</h3>
+								<p className='text-emerald-100 text-sm font-medium mb-6 relative z-10 leading-relaxed'>
+									Upload your latest resume to apply faster to new job openings.
+								</p>
+								<button
+									onClick={() => navigate('/candidate/profile')}
+									className='w-full py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 text-sm font-bold rounded-xl transition-colors relative z-10 shadow-sm cursor-pointer'
+								>
+									Manage Resume
+								</button>
+							</div>
+						</div>
 					</div>
-				</div>
-			</div>
+				</>
+			)}
 		</div>
 	)
 }
