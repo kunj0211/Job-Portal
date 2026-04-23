@@ -9,7 +9,12 @@ import { toast } from 'react-toastify'
 
 const profileSchema = z.object({
 	displayName: z.string().min(2, 'Name must be at least 2 characters'),
-	resumeUrl: z.string().url('Invalid URL').or(z.literal('')).optional().nullable(),
+	resumeUrl: z
+		.string()
+		.url('Invalid URL')
+		.or(z.literal(''))
+		.optional()
+		.nullable(),
 	title: z.string().optional(),
 	experience: z.string().optional(),
 	skills: z.string().optional(),
@@ -22,7 +27,9 @@ const Profile = () => {
 	const dispatch = useAppDispatch()
 	const [loading, setLoading] = useState(true)
 	const [isEditing, setIsEditing] = useState(false)
-	const [currentResumeUrl, setCurrentResumeUrl] = useState<string | null>(null)
+	const [currentResumeUrl, setCurrentResumeUrl] = useState<string | null>(
+		null,
+	)
 
 	const {
 		register,
@@ -44,7 +51,7 @@ const Profile = () => {
 			setLoading(true)
 			const profileData = await authService.checkAuth()
 			const u = profileData.user
-			
+
 			const initialValues = {
 				displayName: u.displayName || '',
 				resumeUrl: u.resumeUrl || '',
@@ -52,7 +59,7 @@ const Profile = () => {
 				experience: u.experience || '',
 				skills: u.skills?.join(', ') || '',
 			}
-			
+
 			reset(initialValues)
 			setCurrentResumeUrl(u.resumeUrl || null)
 		} catch (err) {
@@ -66,17 +73,20 @@ const Profile = () => {
 	const onSubmit = async (data: ProfileFormValues) => {
 		try {
 			const normalizedSkills = data.skills
-				? data.skills.split(',').map(s => s.trim()).filter(s => s !== '')
+				? data.skills
+						.split(',')
+						.map((s) => s.trim())
+						.filter((s) => s !== '')
 				: []
-			
+
 			await authService.updateProfile({
 				displayName: data.displayName,
 				resumeUrl: data.resumeUrl || undefined,
 				title: data.title,
 				experience: data.experience,
-				skills: normalizedSkills
+				skills: normalizedSkills,
 			})
-			
+
 			await dispatch(checkAuth()).unwrap()
 			setCurrentResumeUrl(data.resumeUrl || null)
 			setIsEditing(false)
@@ -114,7 +124,9 @@ const Profile = () => {
 							<div className='text-center mt-4 mb-8 flex flex-col items-center'>
 								{isEditing ? (
 									<div className='mb-2 w-full max-w-xs'>
-										<label className='block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1'>Full Name</label>
+										<label className='block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1'>
+											Full Name
+										</label>
 										<input
 											{...register('displayName')}
 											type='text'
@@ -122,7 +134,9 @@ const Profile = () => {
 											autoFocus
 										/>
 										{errors.displayName && (
-											<p className='text-[10px] text-red-500 mt-1 font-bold'>{errors.displayName.message}</p>
+											<p className='text-[10px] text-red-500 mt-1 font-bold'>
+												{errors.displayName.message}
+											</p>
 										)}
 									</div>
 								) : (
@@ -145,7 +159,7 @@ const Profile = () => {
 									</h3>
 									<div className='flex justify-between items-center mb-2'>
 										<label className='block text-sm font-semibold text-slate-700'>
-											My Resume (PDF)
+											My Resume
 										</label>
 										{currentResumeUrl && (
 											<a
@@ -163,24 +177,32 @@ const Profile = () => {
 									<div className='space-y-4'>
 										<div>
 											<label className='block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1'>
-												Resume Link (Google Drive, Dropbox,
-												etc.)
+												Resume Link (Google Drive,
+												Dropbox, etc.)
 											</label>
 											<div className='flex flex-col gap-1'>
 												{isEditing ? (
 													<input
-														{...register('resumeUrl')}
+														{...register(
+															'resumeUrl',
+														)}
 														type='url'
 														placeholder='https://drive.google.com/...'
 														className={`w-full px-4 py-2 text-sm rounded-xl bg-slate-50 border focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none ${errors.resumeUrl ? 'border-red-400' : 'border-slate-200 focus:border-emerald-500'}`}
 													/>
 												) : (
 													<p className='text-sm text-slate-600 px-1 truncate'>
-														{currentResumeUrl || 'No resume link provided'}
+														{currentResumeUrl ||
+															'No resume link provided'}
 													</p>
 												)}
 												{errors.resumeUrl && (
-													<p className='text-[10px] text-red-500 ml-1 font-bold'>{errors.resumeUrl.message}</p>
+													<p className='text-[10px] text-red-500 ml-1 font-bold'>
+														{
+															errors.resumeUrl
+																.message
+														}
+													</p>
 												)}
 											</div>
 										</div>
@@ -205,7 +227,8 @@ const Profile = () => {
 												/>
 											) : (
 												<p className='text-sm text-slate-700 font-medium px-1'>
-													{user.title || 'Not specified'}
+													{user.title ||
+														'Not specified'}
 												</p>
 											)}
 										</div>
@@ -222,7 +245,8 @@ const Profile = () => {
 												/>
 											) : (
 												<p className='text-sm text-slate-700 font-medium px-1'>
-													{user.experience || 'Not specified'}
+													{user.experience ||
+														'Not specified'}
 												</p>
 											)}
 										</div>
@@ -230,14 +254,16 @@ const Profile = () => {
 								</div>
 
 								<div className='pt-8 border-t border-slate-100'>
-									<h3 className='text-lg font-bold text-slate-800 mb-4'>Skills & Expertise</h3>
+									<h3 className='text-lg font-bold text-slate-800 mb-4'>
+										Skills & Expertise
+									</h3>
 									<div className='space-y-4'>
 										<div>
 											<label className='block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1'>
 												Skills
 											</label>
 											{isEditing ? (
-												<input 
+												<input
 													{...register('skills')}
 													type='text'
 													placeholder='React, Node.js, TypeScript...'
@@ -245,14 +271,22 @@ const Profile = () => {
 												/>
 											) : (
 												<div className='flex flex-wrap gap-2 px-1'>
-													{user.skills && user.skills.length > 0 ? (
-														user.skills.map((skill, index) => (
-															<span key={index} className='px-2 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg'>
-																{skill.trim()}
-															</span>
-														))
+													{user.skills &&
+													user.skills.length > 0 ? (
+														user.skills.map(
+															(skill, index) => (
+																<span
+																	key={index}
+																	className='px-2 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg'
+																>
+																	{skill.trim()}
+																</span>
+															),
+														)
 													) : (
-														<p className='text-sm text-slate-500 italic'>No skills listed</p>
+														<p className='text-sm text-slate-500 italic'>
+															No skills listed
+														</p>
 													)}
 												</div>
 											)}
@@ -286,7 +320,9 @@ const Profile = () => {
 												disabled={isSubmitting}
 												className='px-8 py-3 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-200 disabled:opacity-50'
 											>
-												{isSubmitting ? 'Saving...' : 'Save Profile Changes'}
+												{isSubmitting
+													? 'Saving...'
+													: 'Save Profile Changes'}
 											</button>
 										</>
 									)}
