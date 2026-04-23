@@ -372,6 +372,7 @@ exports.getRecruiterApplications = async (req, res) => {
 					email: candidateDetail?.email || 'No email',
 					resumeUrl: app.resumeUrl || null,
 					appliedAt: app.appliedAt,
+					status: app.status || 'pending',
 				})
 			}
 		})
@@ -420,13 +421,31 @@ exports.getCandidateApplications = async (req, res) => {
 
 		const result = applications.map((app) => ({
 			...app,
+<<<<<<< HEAD
 			job: jobMap[app.jobId] || { title: 'Unknown Position', company: 'Unknown Company' },
+=======
+			job: jobMap[app.jobId] || {
+				title: 'Unknown Position',
+				company: 'Unknown Company',
+			},
+>>>>>>> feature/applyjob
 		}))
 
 		// Sort by appliedAt descending
 		result.sort((a, b) => {
+<<<<<<< HEAD
 			const timeA = a.appliedAt && typeof a.appliedAt.toDate === 'function' ? a.appliedAt.toDate().getTime() : 0
 			const timeB = b.appliedAt && typeof b.appliedAt.toDate === 'function' ? b.appliedAt.toDate().getTime() : 0
+=======
+			const timeA =
+				a.appliedAt && typeof a.appliedAt.toDate === 'function'
+					? a.appliedAt.toDate().getTime()
+					: 0
+			const timeB =
+				b.appliedAt && typeof b.appliedAt.toDate === 'function'
+					? b.appliedAt.toDate().getTime()
+					: 0
+>>>>>>> feature/applyjob
 			return timeB - timeA
 		})
 
@@ -436,3 +455,49 @@ exports.getCandidateApplications = async (req, res) => {
 		res.status(500).json({ error: 'Internal server error' })
 	}
 }
+<<<<<<< HEAD
+=======
+
+// Update application status (for recruiters)
+exports.updateApplicationStatus = async (req, res) => {
+	try {
+		const { id } = req.params
+		const { status } = req.body
+		const recruiterId = req.user.uid
+
+		if (!['pending', 'accepted', 'rejected'].includes(status)) {
+			return res.status(400).json({ error: 'Invalid status' })
+		}
+
+		const applicationRef = db.collection('applications').doc(id)
+		const applicationDoc = await applicationRef.get()
+
+		if (!applicationDoc.exists) {
+			return res.status(404).json({ error: 'Application not found' })
+		}
+
+		// Verify the recruiter owns the job for this application
+		const jobId = applicationDoc.data().jobId
+		const jobDoc = await db.collection('jobs').doc(jobId).get()
+
+		if (!jobDoc.exists || jobDoc.data().recruiterId !== recruiterId) {
+			return res
+				.status(403)
+				.json({ error: 'Unauthorized to update this application' })
+		}
+
+		await applicationRef.update({
+			status,
+			updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+		})
+
+		res.status(200).json({
+			message: 'Application status updated successfully',
+			status,
+		})
+	} catch (error) {
+		console.error('Update application status error:', error)
+		res.status(500).json({ error: 'Internal server error' })
+	}
+}
+>>>>>>> feature/applyjob
