@@ -365,6 +365,7 @@ exports.getRecruiterApplications = async (req, res) => {
 					name: candidateDetail?.displayName || 'Unknown Candidate',
 					email: candidateDetail?.email || 'No email',
 					appliedAt: app.appliedAt,
+					status: app.status || 'pending',
 				})
 			}
 		})
@@ -372,6 +373,112 @@ exports.getRecruiterApplications = async (req, res) => {
 		res.status(200).json({ applications: Object.values(jobMap) })
 	} catch (error) {
 		console.error('Get recruiter applications error:', error)
+		res.status(500).json({ error: 'Internal server error' })
+	}
+}
+
+// Get applications for the logged-in candidate
+exports.getCandidateApplications = async (req, res) => {
+	try {
+		const candidateId = req.user.uid
+
+		const applicationsSnapshot = await db
+			.collection('applications')
+			.where('candidateId', '==', candidateId)
+			.get()
+
+		if (applicationsSnapshot.empty) {
+			return res.status(200).json({ applications: [] })
+		}
+
+		const applications = []
+		const jobIds = []
+		applicationsSnapshot.forEach((doc) => {
+			const data = doc.data()
+			applications.push({ id: doc.id, ...data })
+			jobIds.push(data.jobId)
+		})
+
+		// Fetch job details for each application
+		const jobMap = {}
+		for (let i = 0; i < jobIds.length; i += 30) {
+			const chunk = jobIds.slice(i, i + 30)
+			const jobRefs = chunk.map((id) => db.collection('jobs').doc(id))
+			const jobDocs = await db.getAll(...jobRefs)
+			jobDocs.forEach((doc) => {
+				if (doc.exists) {
+					jobMap[doc.id] = { id: doc.id, ...doc.data() }
+				}
+			})
+		}
+
+		const result = applications.map((app) => ({
+			...app,
+			job: jobMap[app.jobId] || {
+				title: 'Unknown Position',
+				company: 'Unknown Company',
+			},
+		}))
+
+		// Sort by appliedAt descending
+		result.sort((a, b) => {
+			const timeA =
+				a.appliedAt && typeof a.appliedAt.toDate === 'function'
+					? a.appliedAt.toDate().getTime()
+					: 0
+			const timeB =
+				b.appliedAt && typeof b.appliedAt.toDate === 'function'
+					? b.appliedAt.toDate().getTime()
+					: 0
+			return timeB - timeA
+		})
+
+		res.status(200).json({ applications: result })
+	} catch (error) {
+		console.error('Get candidate applications error:', error)
+		res.status(500).json({ error: 'Internal server error' })
+	}
+}
+
+// Update application status (for recruiters)
+exports.updateApplicationStatus = async (req, res) => {
+	try {
+		const { id } = req.params
+		const { status } = req.body
+		const recruiterId = req.user.uid
+
+		if (!['pending', 'accepted', 'rejected'].includes(status)) {
+			return res.status(400).json({ error: 'Invalid status' })
+		}
+
+		const applicationRef = db.collection('applications').doc(id)
+		const applicationDoc = await applicationRef.get()
+
+		if (!applicationDoc.exists) {
+			return res.status(404).json({ error: 'Application not found' })
+		}
+
+		// Verify the recruiter owns the job for this application
+		const jobId = applicationDoc.data().jobId
+		const jobDoc = await db.collection('jobs').doc(jobId).get()
+
+		if (!jobDoc.exists || jobDoc.data().recruiterId !== recruiterId) {
+			return res
+				.status(403)
+				.json({ error: 'Unauthorized to update this application' })
+		}
+
+		await applicationRef.update({
+			status,
+			updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+		})
+
+		res.status(200).json({
+			message: 'Application status updated successfully',
+			status,
+		})
+	} catch (error) {
+		console.error('Update application status error:', error)
 		res.status(500).json({ error: 'Internal server error' })
 	}
 }

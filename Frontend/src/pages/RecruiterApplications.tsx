@@ -1,13 +1,21 @@
 import { useEffect, useState } from 'react'
 import { jobService } from '../api/jobService'
-import { HiOutlineUserCircle, HiCheckCircle } from 'react-icons/hi'
+import { toast } from 'react-toastify'
+import {
+	HiOutlineUserCircle,
+	HiCheckCircle,
+	HiOutlineDocumentText,
+	HiXCircle,
+} from 'react-icons/hi'
 
 interface Applicant {
 	applicationId: string
 	candidateId: string
 	name: string
 	email: string
+	resumeUrl?: string
 	appliedAt: any
+	status: string
 }
 
 interface JobWithApplicants {
@@ -41,6 +49,34 @@ const RecruiterApplications = () => {
 
 		fetchApplications()
 	}, [])
+
+	const handleUpdateStatus = async (
+		jobId: string,
+		applicationId: string,
+		status: string,
+	) => {
+		try {
+			await jobService.updateApplicationStatus(applicationId, status)
+			setData((prev) =>
+				prev.map((job) => {
+					if (job.id === jobId) {
+						return {
+							...job,
+							applicants: job.applicants.map((app) =>
+								app.applicationId === applicationId
+									? { ...app, status }
+									: app,
+							),
+						}
+					}
+					return job
+				}),
+			)
+			toast.success(`Application marked as ${status}`)
+		} catch (err: any) {
+			toast.error(err.response?.data?.error || 'Failed to update status')
+		}
+	}
 
 	if (loading) {
 		return (
@@ -114,18 +150,85 @@ const RecruiterApplications = () => {
 												key={app.applicationId}
 												className='flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 transition-all group'
 											>
-												<div className='flex-1 min-w-0'>
-													<p className='text-sm font-bold text-slate-900 truncate'>
-														{app.name}
-													</p>
-													<p className='text-xs text-slate-500 truncate'>
-														{app.email}
-													</p>
+												<div className='flex items-center gap-4 mb-4'>
+													<div className='flex-1 min-w-0'>
+														<p className='text-sm font-bold text-slate-900 truncate'>
+															{app.name}
+														</p>
+														<p className='text-xs text-slate-500 truncate'>
+															{app.email}
+														</p>
+													</div>
+													<div className='flex items-center gap-2'>
+														{app.status ===
+														'accepted' ? (
+															<span className='px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider rounded-full'>
+																Accepted
+															</span>
+														) : app.status ===
+														  'rejected' ? (
+															<span className='px-2 py-1 bg-red-100 text-red-700 text-[10px] font-black uppercase tracking-wider rounded-full'>
+																Rejected
+															</span>
+														) : (
+															<span className='px-2 py-1 bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-wider rounded-full'>
+																Pending
+															</span>
+														)}
+													</div>
 												</div>
-												<HiCheckCircle
-													size={20}
-													className='text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity'
-												/>
+
+												{app.resumeUrl ? (
+													<a
+														href={app.resumeUrl}
+														target='_blank'
+														rel='noreferrer'
+														className='w-full py-2 bg-white text-emerald-600 text-xs font-bold rounded-xl border border-emerald-100 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all text-center flex items-center justify-center gap-2'
+													>
+														<HiOutlineDocumentText
+															size={16}
+														/>
+														View CV / Resume
+													</a>
+												) : (
+													<div className='w-full py-2 bg-slate-50 text-slate-400 text-[10px] font-bold rounded-xl border border-slate-100 text-center uppercase tracking-wider'>
+														No CV /Resume provided
+													</div>
+												)}
+												{app.status === 'pending' && (
+													<div className='mt-3 flex gap-2'>
+														<button
+															onClick={() =>
+																handleUpdateStatus(
+																	job.id,
+																	app.applicationId,
+																	'accepted',
+																)
+															}
+															className='flex-1 py-1.5 flex justify-center items-center gap-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 text-xs font-bold rounded-lg border border-emerald-200 transition-colors cursor-pointer'
+														>
+															<HiCheckCircle
+																size={14}
+															/>{' '}
+															Accept
+														</button>
+														<button
+															onClick={() =>
+																handleUpdateStatus(
+																	job.id,
+																	app.applicationId,
+																	'rejected',
+																)
+															}
+															className='flex-1 py-1.5 flex justify-center items-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold rounded-lg border border-red-200 transition-colors cursor-pointer'
+														>
+															<HiXCircle
+																size={14}
+															/>{' '}
+															Reject
+														</button>
+													</div>
+												)}
 											</div>
 										))}
 									</div>

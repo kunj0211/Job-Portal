@@ -25,6 +25,24 @@ router.delete('/:id', jobController.deleteJob)
 router.post('/:id/apply', jobController.applyForJob)
 
 // GET /api/jobs/applications -> Get all applications for recruiter's jobs
-router.get('/applications', jobController.getRecruiterApplications)
+router.get(
+	'/applications',
+	authorizeRoles('recruiter'),
+	jobController.getRecruiterApplications,
+)
+
+// PUT /api/jobs/applications/:id/status -> Update application status
+router.put(
+	'/applications/:id/status',
+	authorizeRoles('recruiter'),
+	jobController.updateApplicationStatus,
+)
+
+// GET /api/jobs/my-applications -> Get all applications for the logged in candidate
+router.get(
+	'/my-applications',
+	authorizeRoles('candidate'),
+	jobController.getCandidateApplications,
+)
 
 module.exports = router
