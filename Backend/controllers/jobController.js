@@ -421,22 +421,14 @@ exports.getCandidateApplications = async (req, res) => {
 
 		const result = applications.map((app) => ({
 			...app,
-<<<<<<< HEAD
-			job: jobMap[app.jobId] || { title: 'Unknown Position', company: 'Unknown Company' },
-=======
 			job: jobMap[app.jobId] || {
 				title: 'Unknown Position',
 				company: 'Unknown Company',
 			},
->>>>>>> feature/applyjob
 		}))
 
 		// Sort by appliedAt descending
 		result.sort((a, b) => {
-<<<<<<< HEAD
-			const timeA = a.appliedAt && typeof a.appliedAt.toDate === 'function' ? a.appliedAt.toDate().getTime() : 0
-			const timeB = b.appliedAt && typeof b.appliedAt.toDate === 'function' ? b.appliedAt.toDate().getTime() : 0
-=======
 			const timeA =
 				a.appliedAt && typeof a.appliedAt.toDate === 'function'
 					? a.appliedAt.toDate().getTime()
@@ -445,7 +437,6 @@ exports.getCandidateApplications = async (req, res) => {
 				b.appliedAt && typeof b.appliedAt.toDate === 'function'
 					? b.appliedAt.toDate().getTime()
 					: 0
->>>>>>> feature/applyjob
 			return timeB - timeA
 		})
 
@@ -455,8 +446,6 @@ exports.getCandidateApplications = async (req, res) => {
 		res.status(500).json({ error: 'Internal server error' })
 	}
 }
-<<<<<<< HEAD
-=======
 
 // Update application status (for recruiters)
 exports.updateApplicationStatus = async (req, res) => {
@@ -500,4 +489,3 @@ exports.updateApplicationStatus = async (req, res) => {
 		res.status(500).json({ error: 'Internal server error' })
 	}
 }
->>>>>>> feature/applyjob

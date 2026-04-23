@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react'
 import { jobService } from '../api/jobService'
-<<<<<<< HEAD
-=======
 import { toast } from 'react-toastify'
->>>>>>> feature/applyjob
 import {
 	HiOutlineUserCircle,
 	HiCheckCircle,
 	HiOutlineDocumentText,
-<<<<<<< HEAD
-=======
 	HiXCircle,
->>>>>>> feature/applyjob
 } from 'react-icons/hi'
 
 interface Applicant {
@@ -165,12 +159,6 @@ const RecruiterApplications = () => {
 															{app.email}
 														</p>
 													</div>
-<<<<<<< HEAD
-													<HiCheckCircle
-														size={20}
-														className='text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity'
-													/>
-=======
 													<div className='flex items-center gap-2'>
 														{app.status ===
 														'accepted' ? (
@@ -188,7 +176,6 @@ const RecruiterApplications = () => {
 															</span>
 														)}
 													</div>
->>>>>>> feature/applyjob
 												</div>
 
 												{app.resumeUrl ? (
@@ -208,8 +195,6 @@ const RecruiterApplications = () => {
 														No CV /Resume provided
 													</div>
 												)}
-<<<<<<< HEAD
-=======
 												{app.status === 'pending' && (
 													<div className='mt-3 flex gap-2'>
 														<button
@@ -244,7 +229,6 @@ const RecruiterApplications = () => {
 														</button>
 													</div>
 												)}
->>>>>>> feature/applyjob
 											</div>
 										))}
 									</div>

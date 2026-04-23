@@ -3,21 +3,8 @@ import axios from 'axios'
 const API_URL = '/api/jobs'
 
 export const jobService = {
-<<<<<<< HEAD
-	getAllJobs: async (params?: {
-		keyword?: string
-		location?: string
-		signal?: AbortSignal
-	}) => {
-		const { signal, ...queryParams } = params || {}
-		const response = await axios.get(API_URL, {
-			params: queryParams,
-			signal,
-		})
-=======
 	getAllJobs: async () => {
 		const response = await axios.get(API_URL)
->>>>>>> feature/applyjob
 		return response.data
 	},
 
@@ -46,20 +33,10 @@ export const jobService = {
 		return response.data
 	},
 
-<<<<<<< HEAD
-=======
-	applyForJob: async (id: string) => {
-		const response = await axios.post(`${API_URL}/${id}/apply`)
-		return response.data
-	},
-
->>>>>>> feature/applyjob
 	getApplications: async () => {
 		const response = await axios.get(`${API_URL}/applications`)
 		return response.data
 	},
-<<<<<<< HEAD
-=======
 	updateApplicationStatus: async (applicationId: string, status: string) => {
 		const response = await axios.put(
 			`${API_URL}/applications/${applicationId}/status`,
@@ -67,7 +44,6 @@ export const jobService = {
 		)
 		return response.data
 	},
->>>>>>> feature/applyjob
 	getMyApplications: async () => {
 		const response = await axios.get(`${API_URL}/my-applications`)
 		return response.data
