@@ -179,7 +179,7 @@ const Login = () => {
 					New here?{' '}
 					<Link
 						to='/signup'
-						className='text-emerald-600 hover:text-emerald-700 font-bold transition-colors underline-offset-4 hover:underline'
+						className='link-theme'
 					>
 						Create an account
 					</Link>

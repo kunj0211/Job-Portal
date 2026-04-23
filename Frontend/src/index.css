@@ -1,6 +1,13 @@
 @import "tailwindcss";
 
 @layer base {
+  
+
+  /* Standardized link style matching the login page */
+  .link-theme {
+    @apply text-emerald-600 hover:text-emerald-700 font-bold transition-colors underline-offset-4 hover:underline cursor-pointer;
+  }
+
   /* Fix for browser autofill background color */
   input:-webkit-autofill,
   input:-webkit-autofill:hover, 

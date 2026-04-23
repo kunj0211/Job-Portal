@@ -229,7 +229,7 @@ const RecruiterDashboard = () => {
 									onClick={() =>
 										navigate('/recruiter/applications')
 									}
-									className='text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors cursor-pointer'
+									className='link-theme text-sm'
 								>
 									View All
 								</button>

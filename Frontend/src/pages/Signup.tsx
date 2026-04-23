@@ -309,7 +309,7 @@ const Signup = () => {
 					Already have an account?{' '}
 					<Link
 						to='/login'
-						className='text-emerald-600 hover:text-emerald-700 font-bold transition-colors underline-offset-4 hover:underline'
+						className='link-theme'
 					>
 						Log in
 					</Link>
