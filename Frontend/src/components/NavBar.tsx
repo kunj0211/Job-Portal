@@ -73,7 +73,7 @@ const NavBar = () => {
 							<HiOutlineBriefcase className='text-white text-xl' />
 						</div>
 						<span className='font-sans text-2xl font-black bg-linear-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent tracking-tight'>
-							Job<span className='text-emerald-600'>Portal</span>
+							<span className='text-emerald-600'>Job Portal</span>
 						</span>
 					</div>
 

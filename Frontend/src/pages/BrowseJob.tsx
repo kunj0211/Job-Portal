@@ -99,9 +99,9 @@ const BrowseJob = () => {
 				</div>
 				<div className='flex flex-wrap gap-2 '>
 					{loading && (
-						<p className='text-lg text-slate-600'>
-							Loading jobs...
-						</p>
+						<div className='flex justify-center items-center h-64 w-full'>
+							<div className='w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin'></div>
+						</div>
 					)}
 					{error && <p className='text-lg text-red-600'>{error}</p>}
 					{!loading && !error && jobs?.length === 0 && (
