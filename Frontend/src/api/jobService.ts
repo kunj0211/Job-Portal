@@ -3,8 +3,12 @@ import axios from 'axios'
 const API_URL = '/api/jobs'
 
 export const jobService = {
-	getAllJobs: async () => {
-		const response = await axios.get(API_URL)
+	getAllJobs: async (options: { keyword?: string; location?: string; signal?: AbortSignal } = {}) => {
+		const { signal, ...params } = options
+		const response = await axios.get(API_URL, { 
+			params,
+			signal 
+		})
 		return response.data
 	},
 
