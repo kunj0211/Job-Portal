@@ -97,7 +97,7 @@ const AppContent = () => {
 				}
 			/>
 			<Route
-				path='/candidate/profile'
+				path='/profile'
 				element={
 					<ProtectedRoute>
 						<DashboardLayout>

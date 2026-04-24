@@ -293,7 +293,7 @@ const Dashboard = () => {
 											: 'Adding a professional profile picture and updating your skills increases your chances of getting hired!'}
 									</p>
 									<button 
-										onClick={() => navigate('/candidate/profile')}
+										onClick={() => navigate('/profile')}
 										className='mt-4 w-full py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-200'
 									>
 										{completeness === 100 ? 'View Profile' : 'Complete Profile'}
@@ -310,7 +310,7 @@ const Dashboard = () => {
 									Upload your latest resume to apply faster to new job openings.
 								</p>
 								<button
-									onClick={() => navigate('/candidate/profile')}
+									onClick={() => navigate('/profile')}
 									className='w-full py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 text-sm font-bold rounded-xl transition-colors relative z-10 shadow-sm cursor-pointer'
 								>
 									Manage Resume
