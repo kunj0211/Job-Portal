@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAppSelector } from '../store'
 import { useNavigate } from 'react-router-dom'
 import { jobService } from '../api/jobService'
+import { motion } from 'framer-motion'
 import {
 	HiClock,
 	HiOutlineBriefcase,
@@ -9,6 +10,8 @@ import {
 	HiOutlineTrendingUp,
 	HiOutlineCheckCircle,
 	HiOutlineXCircle,
+	HiOutlineChevronRight,
+	HiOutlineSparkles,
 } from 'react-icons/hi'
 import { MdLocationPin, MdDashboard } from 'react-icons/md'
 
@@ -61,7 +64,6 @@ const Dashboard = () => {
 		rejected: applications.filter(a => a.status === 'rejected').length,
 	}
 
-	// Dynamic Profile Completeness Calculation
 	const calculateCompleteness = () => {
 		let score = 0;
 		const totalFields = 5;
@@ -76,6 +78,21 @@ const Dashboard = () => {
 	}
 
 	const completeness = calculateCompleteness();
+
+	const containerVariants = {
+		hidden: { opacity: 0 },
+		visible: {
+			opacity: 1,
+			transition: {
+				staggerChildren: 0.1,
+			},
+		},
+	}
+
+	const itemVariants = {
+		hidden: { y: 20, opacity: 0 },
+		visible: { y: 0, opacity: 1 },
+	}
 
 	return (
 		<div className='p-8 font-sans max-w-7xl mx-auto bg-slate-50/50 min-h-screen'>
@@ -97,7 +114,7 @@ const Dashboard = () => {
 				<div className='flex gap-3'>
 					<button
 						onClick={() => navigate('/candidate/browseJobs')}
-						className='px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-emerald-200 flex items-center gap-2 cursor-pointer'
+						className='px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all shadow-sm shadow-emerald-200 flex items-center gap-2 cursor-pointer active:scale-95'
 					>
 						<HiOutlineSearch size={18} /> Browse New Jobs
 					</button>
@@ -109,11 +126,15 @@ const Dashboard = () => {
 					<div className='w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin'></div>
 				</div>
 			) : (
-				<>
+				<motion.div
+					variants={containerVariants}
+					initial="hidden"
+					animate="visible"
+				>
 					{/* Stats Grid */}
 					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10'>
 						{/* Total Applied */}
-						<div className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group'>
+						<motion.div variants={itemVariants} className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'>
 							<div className='absolute -right-6 -top-6 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
 							<div className='relative z-10'>
 								<div className='w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-4'>
@@ -126,10 +147,10 @@ const Dashboard = () => {
 									Applied Jobs
 								</p>
 							</div>
-						</div>
+						</motion.div>
 
 						{/* Pending Review */}
-						<div className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group'>
+						<motion.div variants={itemVariants} className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'>
 							<div className='absolute -right-6 -top-6 w-24 h-24 bg-amber-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
 							<div className='relative z-10'>
 								<div className='w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-4'>
@@ -142,10 +163,10 @@ const Dashboard = () => {
 									Pending Review
 								</p>
 							</div>
-						</div>
+						</motion.div>
 
 						{/* Accepted */}
-						<div className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group'>
+						<motion.div variants={itemVariants} className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'>
 							<div className='absolute -right-6 -top-6 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
 							<div className='relative z-10'>
 								<div className='w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-4'>
@@ -158,10 +179,10 @@ const Dashboard = () => {
 									Accepted
 								</p>
 							</div>
-						</div>
+						</motion.div>
 
 						{/* Rejected */}
-						<div className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group'>
+						<motion.div variants={itemVariants} className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'>
 							<div className='absolute -right-6 -top-6 w-24 h-24 bg-red-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
 							<div className='relative z-10'>
 								<div className='w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-4'>
@@ -174,12 +195,12 @@ const Dashboard = () => {
 									Rejected
 								</p>
 							</div>
-						</div>
+						</motion.div>
 					</div>
 
 					<div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
 						{/* Recent Applications Feed */}
-						<div className='lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden'>
+						<motion.div variants={itemVariants} className='lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden'>
 							<div className='px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50'>
 								<h2 className='text-lg font-bold text-slate-800 flex items-center gap-2'>
 									<HiOutlineTrendingUp className='text-emerald-500' />
@@ -187,9 +208,9 @@ const Dashboard = () => {
 								</h2>
 								<button
 									onClick={() => navigate('/candidate/browseJobs')}
-									className='link-theme text-sm'
+									className='link-theme text-sm flex items-center gap-1 hover:gap-2 transition-all'
 								>
-									Find More
+									Find More <HiOutlineChevronRight size={14} />
 								</button>
 							</div>
 
@@ -214,23 +235,23 @@ const Dashboard = () => {
 									applications.map((app) => (
 										<div
 											key={app.id}
-											className='p-6 hover:bg-slate-50 transition-colors flex items-center justify-between gap-4'
+											className='p-6 hover:bg-slate-50 transition-all flex items-center justify-between gap-4 group cursor-default'
 										>
 											<div className='flex items-center gap-4'>
-												<div className='w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 font-bold text-sm'>
+												<div className='w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 font-black text-sm border-2 border-white shadow-sm group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors'>
 													{app.job.company.charAt(0).toUpperCase()}
 												</div>
 												<div>
-													<p className='text-base font-bold text-slate-900'>
+													<p className='text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors'>
 														{app.job.title}
 													</p>
 													<div className='flex items-center gap-3 mt-1'>
-														<p className='text-sm font-medium text-slate-600'>
+														<p className='text-sm font-bold text-slate-500'>
 															{app.job.company}
 														</p>
 														<span className='w-1 h-1 bg-slate-300 rounded-full'></span>
-														<p className='text-sm text-slate-500 flex items-center gap-1'>
-															<MdLocationPin className='text-slate-400' />
+														<p className='text-sm text-slate-400 flex items-center gap-1 font-medium'>
+															<MdLocationPin className='text-slate-300' />
 															{app.job.location}
 														</p>
 													</div>
@@ -260,49 +281,52 @@ const Dashboard = () => {
 									))
 								)}
 							</div>
-						</div>
+						</motion.div>
 
 						{/* Sidebar / Profile Completeness */}
 						<div className='space-y-6'>
-							<div className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm'>
-								<h3 className='text-lg font-bold text-slate-800 mb-4'>
-									Profile Completeness
+							<motion.div variants={itemVariants} className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm'>
+								<h3 className='text-lg font-bold text-slate-800 mb-4 flex items-center gap-2'>
+									<HiOutlineSparkles className='text-emerald-500' />
+									Profile Strength
 								</h3>
 								<div className='relative pt-1'>
 									<div className='flex mb-2 items-center justify-between'>
 										<div>
-											<span className='text-xs font-bold inline-block py-1 px-2 uppercase rounded-full text-emerald-600 bg-emerald-100'>
+											<span className='text-[10px] font-black inline-block py-1 px-2 uppercase rounded-lg text-emerald-700 bg-emerald-100 tracking-wider'>
 												{completeness === 100 ? 'Complete' : 'Professional'}
 											</span>
 										</div>
 										<div className='text-right'>
-											<span className='text-xs font-bold inline-block text-emerald-600'>
+											<span className='text-sm font-black text-emerald-600'>
 												{completeness}%
 											</span>
 										</div>
 									</div>
-									<div className='overflow-hidden h-2 mb-4 text-xs flex rounded bg-emerald-100'>
-										<div
-											style={{ width: `${completeness}%` }}
-											className='shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-emerald-500 transition-all duration-1000'
-										></div>
+									<div className='overflow-hidden h-2.5 mb-4 text-xs flex rounded-full bg-emerald-50 border border-emerald-100'>
+										<motion.div
+											initial={{ width: 0 }}
+											animate={{ width: `${completeness}%` }}
+											transition={{ duration: 1, ease: "easeOut" }}
+											className='shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-emerald-500'
+										></motion.div>
 									</div>
-									<p className='text-xs text-slate-500 leading-relaxed'>
+									<p className='text-xs text-slate-500 font-medium leading-relaxed'>
 										{completeness === 100 
 											? 'Your profile is fully updated! You are ready to land your dream job.' 
 											: 'Adding a professional profile picture and updating your skills increases your chances of getting hired!'}
 									</p>
 									<button 
 										onClick={() => navigate('/profile')}
-										className='mt-4 w-full py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-200'
+										className='mt-6 w-full py-3 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 flex items-center justify-center gap-2 active:scale-95'
 									>
-										{completeness === 100 ? 'View Profile' : 'Complete Profile'}
+										{completeness === 100 ? 'View Profile' : 'Complete Profile'} <HiOutlineChevronRight />
 									</button>
 								</div>
-							</div>
+							</motion.div>
 
-							<div className='bg-linear-to-br from-emerald-600 to-teal-800 rounded-3xl p-6 text-white shadow-lg shadow-emerald-900/20 relative overflow-hidden'>
-								<div className='absolute right-10 top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl'></div>
+							<motion.div variants={itemVariants} className='bg-linear-to-br from-emerald-600 to-teal-800 rounded-3xl p-6 text-white shadow-lg shadow-emerald-900/20 relative overflow-hidden group'>
+								<div className='absolute right-10 top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700'></div>
 								<h3 className='text-xl font-bold mb-2 relative z-10'>
 									Stay Ahead
 								</h3>
@@ -311,14 +335,14 @@ const Dashboard = () => {
 								</p>
 								<button
 									onClick={() => navigate('/profile')}
-									className='w-full py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 text-sm font-bold rounded-xl transition-colors relative z-10 shadow-sm cursor-pointer'
+									className='w-full py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 text-sm font-bold rounded-xl transition-all relative z-10 shadow-sm cursor-pointer active:scale-95'
 								>
 									Manage Resume
 								</button>
-							</div>
+							</motion.div>
 						</div>
 					</div>
-				</>
+				</motion.div>
 			)}
 		</div>
 	)
