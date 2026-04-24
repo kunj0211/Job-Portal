@@ -11,7 +11,6 @@ import {
 	HiOutlineCheckCircle,
 	HiOutlineXCircle,
 	HiOutlineChevronRight,
-	HiOutlineSparkles,
 } from 'react-icons/hi'
 import { MdLocationPin, MdDashboard } from 'react-icons/md'
 
@@ -59,25 +58,26 @@ const Dashboard = () => {
 
 	const stats = {
 		total: applications.length,
-		pending: applications.filter(a => !a.status || a.status === 'pending').length,
-		accepted: applications.filter(a => a.status === 'accepted').length,
-		rejected: applications.filter(a => a.status === 'rejected').length,
+		pending: applications.filter((a) => !a.status || a.status === 'pending')
+			.length,
+		accepted: applications.filter((a) => a.status === 'accepted').length,
+		rejected: applications.filter((a) => a.status === 'rejected').length,
 	}
 
 	const calculateCompleteness = () => {
-		let score = 0;
-		const totalFields = 5;
-		
-		if (user.displayName) score++;
-		if (user.title) score++;
-		if (user.experience) score++;
-		if (user.skills && user.skills.length > 0) score++;
-		if (user.resumeUrl) score++;
-		
-		return Math.round((score / totalFields) * 100);
+		let score = 0
+		const totalFields = 5
+
+		if (user.displayName) score++
+		if (user.title) score++
+		if (user.experience) score++
+		if (user.skills && user.skills.length > 0) score++
+		if (user.resumeUrl) score++
+
+		return Math.round((score / totalFields) * 100)
 	}
 
-	const completeness = calculateCompleteness();
+	const completeness = calculateCompleteness()
 
 	const containerVariants = {
 		hidden: { opacity: 0 },
@@ -128,13 +128,16 @@ const Dashboard = () => {
 			) : (
 				<motion.div
 					variants={containerVariants}
-					initial="hidden"
-					animate="visible"
+					initial='hidden'
+					animate='visible'
 				>
 					{/* Stats Grid */}
 					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10'>
 						{/* Total Applied */}
-						<motion.div variants={itemVariants} className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'>
+						<motion.div
+							variants={itemVariants}
+							className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'
+						>
 							<div className='absolute -right-6 -top-6 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
 							<div className='relative z-10'>
 								<div className='w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-4'>
@@ -143,14 +146,15 @@ const Dashboard = () => {
 								<h3 className='text-3xl font-black text-slate-900 mb-1'>
 									{stats.total}
 								</h3>
-								<p className='text-sm font-bold text-slate-500'>
-									Applied Jobs
-								</p>
+								<p className='text-sm font-bold text-slate-500'>Applied Jobs</p>
 							</div>
 						</motion.div>
 
 						{/* Pending Review */}
-						<motion.div variants={itemVariants} className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'>
+						<motion.div
+							variants={itemVariants}
+							className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'
+						>
 							<div className='absolute -right-6 -top-6 w-24 h-24 bg-amber-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
 							<div className='relative z-10'>
 								<div className='w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-4'>
@@ -166,7 +170,10 @@ const Dashboard = () => {
 						</motion.div>
 
 						{/* Accepted */}
-						<motion.div variants={itemVariants} className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'>
+						<motion.div
+							variants={itemVariants}
+							className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'
+						>
 							<div className='absolute -right-6 -top-6 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
 							<div className='relative z-10'>
 								<div className='w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-4'>
@@ -175,14 +182,15 @@ const Dashboard = () => {
 								<h3 className='text-3xl font-black text-slate-900 mb-1'>
 									{stats.accepted}
 								</h3>
-								<p className='text-sm font-bold text-slate-500'>
-									Accepted
-								</p>
+								<p className='text-sm font-bold text-slate-500'>Accepted</p>
 							</div>
 						</motion.div>
 
 						{/* Rejected */}
-						<motion.div variants={itemVariants} className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'>
+						<motion.div
+							variants={itemVariants}
+							className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group'
+						>
 							<div className='absolute -right-6 -top-6 w-24 h-24 bg-red-50 rounded-full group-hover:scale-[2] transition-transform duration-500 ease-out'></div>
 							<div className='relative z-10'>
 								<div className='w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mb-4'>
@@ -191,16 +199,17 @@ const Dashboard = () => {
 								<h3 className='text-3xl font-black text-slate-900 mb-1'>
 									{stats.rejected}
 								</h3>
-								<p className='text-sm font-bold text-slate-500'>
-									Rejected
-								</p>
+								<p className='text-sm font-bold text-slate-500'>Rejected</p>
 							</div>
 						</motion.div>
 					</div>
 
 					<div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
 						{/* Recent Applications Feed */}
-						<motion.div variants={itemVariants} className='lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden'>
+						<motion.div
+							variants={itemVariants}
+							className='lg:col-span-2 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden'
+						>
 							<div className='px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50'>
 								<h2 className='text-lg font-bold text-slate-800 flex items-center gap-2'>
 									<HiOutlineTrendingUp className='text-emerald-500' />
@@ -263,8 +272,8 @@ const Dashboard = () => {
 														app.status === 'accepted'
 															? 'bg-emerald-100 text-emerald-700'
 															: app.status === 'rejected'
-															? 'bg-red-100 text-red-700'
-															: 'bg-amber-100 text-amber-700'
+																? 'bg-red-100 text-red-700'
+																: 'bg-amber-100 text-amber-700'
 													}`}
 												>
 													{app.status || 'Pending'}
@@ -272,8 +281,8 @@ const Dashboard = () => {
 												<span className='text-[10px] font-bold text-slate-400'>
 													{app.appliedAt
 														? new Date(
-																app.appliedAt._seconds * 1000
-														  ).toLocaleDateString()
+																app.appliedAt._seconds * 1000,
+															).toLocaleDateString()
 														: 'Recent'}
 												</span>
 											</div>
@@ -285,9 +294,11 @@ const Dashboard = () => {
 
 						{/* Sidebar / Profile Completeness */}
 						<div className='space-y-6'>
-							<motion.div variants={itemVariants} className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm'>
+							<motion.div
+								variants={itemVariants}
+								className='bg-white p-6 rounded-3xl border border-slate-200 shadow-sm'
+							>
 								<h3 className='text-lg font-bold text-slate-800 mb-4 flex items-center gap-2'>
-									<HiOutlineSparkles className='text-emerald-500' />
 									Profile Strength
 								</h3>
 								<div className='relative pt-1'>
@@ -306,26 +317,35 @@ const Dashboard = () => {
 									<div className='overflow-hidden h-2.5 mb-4 text-xs flex rounded-full bg-emerald-50 border border-emerald-100'>
 										<motion.div
 											initial={{ width: 0 }}
-											animate={{ width: `${completeness}%` }}
-											transition={{ duration: 1, ease: "easeOut" }}
+											animate={{
+												width: `${completeness}%`,
+											}}
+											transition={{
+												duration: 1,
+												ease: 'easeOut',
+											}}
 											className='shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-emerald-500'
 										></motion.div>
 									</div>
 									<p className='text-xs text-slate-500 font-medium leading-relaxed'>
-										{completeness === 100 
-											? 'Your profile is fully updated! You are ready to land your dream job.' 
+										{completeness === 100
+											? 'Your profile is fully updated! You are ready to land your dream job.'
 											: 'Adding a professional profile picture and updating your skills increases your chances of getting hired!'}
 									</p>
-									<button 
+									<button
 										onClick={() => navigate('/profile')}
 										className='mt-6 w-full py-3 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 flex items-center justify-center gap-2 active:scale-95'
 									>
-										{completeness === 100 ? 'View Profile' : 'Complete Profile'} <HiOutlineChevronRight />
+										{completeness === 100 ? 'View Profile' : 'Complete Profile'}{' '}
+										<HiOutlineChevronRight />
 									</button>
 								</div>
 							</motion.div>
 
-							<motion.div variants={itemVariants} className='bg-linear-to-br from-emerald-600 to-teal-800 rounded-3xl p-6 text-white shadow-lg shadow-emerald-900/20 relative overflow-hidden group'>
+							<motion.div
+								variants={itemVariants}
+								className='bg-linear-to-br from-emerald-600 to-teal-800 rounded-3xl p-6 text-white shadow-lg shadow-emerald-900/20 relative overflow-hidden group'
+							>
 								<div className='absolute right-10 top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700'></div>
 								<h3 className='text-xl font-bold mb-2 relative z-10'>
 									Stay Ahead
