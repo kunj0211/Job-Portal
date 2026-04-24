@@ -14,6 +14,26 @@ import {
 	HiOutlineSparkles,
 } from 'react-icons/hi'
 import { MdLocationPin, MdDashboard } from 'react-icons/md'
+import { motion } from 'framer-motion'
+
+const containerVariants = {
+	hidden: { opacity: 0 },
+	visible: {
+		opacity: 1,
+		transition: {
+			staggerChildren: 0.1,
+		},
+	},
+}
+
+const itemVariants = {
+	hidden: { y: 20, opacity: 0 },
+	visible: {
+		y: 0,
+		opacity: 1,
+	},
+}
+
 
 interface Application {
 	id: string
@@ -59,25 +79,26 @@ const Dashboard = () => {
 
 	const stats = {
 		total: applications.length,
-		pending: applications.filter(a => !a.status || a.status === 'pending').length,
-		accepted: applications.filter(a => a.status === 'accepted').length,
-		rejected: applications.filter(a => a.status === 'rejected').length,
+		pending: applications.filter((a) => !a.status || a.status === 'pending')
+			.length,
+		accepted: applications.filter((a) => a.status === 'accepted').length,
+		rejected: applications.filter((a) => a.status === 'rejected').length,
 	}
 
 	const calculateCompleteness = () => {
-		let score = 0;
-		const totalFields = 5;
-		
-		if (user.displayName) score++;
-		if (user.title) score++;
-		if (user.experience) score++;
-		if (user.skills && user.skills.length > 0) score++;
-		if (user.resumeUrl) score++;
-		
-		return Math.round((score / totalFields) * 100);
+		let score = 0
+		const totalFields = 5
+
+		if (user.displayName) score++
+		if (user.title) score++
+		if (user.experience) score++
+		if (user.skills && user.skills.length > 0) score++
+		if (user.resumeUrl) score++
+
+		return Math.round((score / totalFields) * 100)
 	}
 
-	const completeness = calculateCompleteness();
+	const completeness = calculateCompleteness()
 
 	const containerVariants = {
 		hidden: { opacity: 0 },
@@ -108,7 +129,8 @@ const Dashboard = () => {
 						<span className='text-slate-800 font-bold'>
 							{user.displayName || 'Candidate'}
 						</span>
-						. Track your applications and find your next opportunity.
+						. Track your applications and find your next
+						opportunity.
 					</p>
 				</div>
 				<div className='flex gap-3'>
@@ -222,10 +244,15 @@ const Dashboard = () => {
 								) : applications.length === 0 ? (
 									<div className='p-12 text-center'>
 										<p className='text-slate-400 italic mb-6'>
-											You haven't applied for any jobs yet.
+											You haven't applied for any jobs
+											yet.
 										</p>
 										<button
-											onClick={() => navigate('/candidate/browseJobs')}
+											onClick={() =>
+												navigate(
+													'/candidate/browseJobs',
+												)
+											}
 											className='link-theme'
 										>
 											Browse Job Openings
@@ -260,11 +287,13 @@ const Dashboard = () => {
 											<div className='flex flex-col items-end gap-2'>
 												<span
 													className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-														app.status === 'accepted'
+														app.status ===
+														'accepted'
 															? 'bg-emerald-100 text-emerald-700'
-															: app.status === 'rejected'
-															? 'bg-red-100 text-red-700'
-															: 'bg-amber-100 text-amber-700'
+															: app.status ===
+																  'rejected'
+																? 'bg-red-100 text-red-700'
+																: 'bg-amber-100 text-amber-700'
 													}`}
 												>
 													{app.status || 'Pending'}
@@ -272,8 +301,10 @@ const Dashboard = () => {
 												<span className='text-[10px] font-bold text-slate-400'>
 													{app.appliedAt
 														? new Date(
-																app.appliedAt._seconds * 1000
-														  ).toLocaleDateString()
+																app.appliedAt
+																	._seconds *
+																	1000,
+															).toLocaleDateString()
 														: 'Recent'}
 												</span>
 											</div>
@@ -331,7 +362,8 @@ const Dashboard = () => {
 									Stay Ahead
 								</h3>
 								<p className='text-emerald-100 text-sm font-medium mb-6 relative z-10 leading-relaxed'>
-									Upload your latest resume to apply faster to new job openings.
+									Upload your latest resume to apply faster to
+									new job openings.
 								</p>
 								<button
 									onClick={() => navigate('/profile')}
