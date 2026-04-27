@@ -489,3 +489,82 @@ exports.updateApplicationStatus = async (req, res) => {
 		res.status(500).json({ error: 'Internal server error' })
 	}
 }
+
+// Generate a professional job description using AI (Gemini)
+exports.generateDescription = async (req, res) => {
+	try {
+		const { title, company } = req.body
+
+		if (!title) {
+			return res.status(400).json({ error: 'Job title is required for generation' })
+		}
+
+		const rawKey = process.env.GEMINI_API_KEY
+		if (!rawKey || rawKey === 'YOUR_GEMINI_API_KEY_HERE') {
+			return res.status(400).json({ 
+				error: 'AI Generation is not configured. Please add GEMINI_API_KEY to your .env file.' 
+			})
+		}
+
+		// Clean the API key (handle quotes if present)
+		const apiKey = rawKey.trim().replace(/^["']|["']$/g, '')
+
+		const prompt = `
+      Write a professional and detailed job description for a "${title}" position${company ? ` at "${company}"` : ''}.
+      
+      DO NOT include the Job Title, Company Name, Location, or a "Role Summary" header in your response. 
+      Start directly with the compelling summary of the role itself.
+      
+      The description should include:
+      1. A compelling summary of the role (no header).
+      2. Key responsibilities (bullet points).
+      3. Required qualifications and skills (bullet points).
+      4. A brief mention of why a candidate should join.
+      
+      Keep the tone professional, engaging, and clear. Do not include placeholders like "[Your Name]".
+    `
+
+		const apiBody = {
+			contents: [
+				{
+					parts: [
+						{ text: prompt }
+					]
+				}
+			],
+			generationConfig: {
+				temperature: 0.7,
+				topP: 0.95,
+				topK: 40,
+				maxOutputTokens: 2048,
+			}
+		}
+
+		const apiResponse = await fetch(
+			`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`,
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(apiBody),
+			}
+		)
+
+		if (!apiResponse.ok) {
+			const errorText = await apiResponse.text()
+			console.error(`Gemini API Error (${apiResponse.status}):`, errorText)
+			throw new Error(`Google API returned ${apiResponse.status}`)
+		}
+
+		const result = await apiResponse.json()
+
+		if (!result.candidates || !result.candidates[0] || !result.candidates[0].content) {
+			throw new Error('Invalid response structure from AI')
+		}
+
+		const description = result.candidates[0].content.parts[0].text.trim()
+		res.status(200).json({ description })
+	} catch (error) {
+		console.error('AI Generation error:', error.message)
+		res.status(500).json({ error: 'Failed to generate job description: ' + error.message })
+	}
+}

@@ -52,4 +52,11 @@ export const jobService = {
 		const response = await axios.get(`${API_URL}/my-applications`)
 		return response.data
 	},
+	generateJobDescription: async (title: string, company?: string) => {
+		const response = await axios.post(`${API_URL}/generate-description`, {
+			title,
+			company,
+		})
+		return response.data
+	},
 }

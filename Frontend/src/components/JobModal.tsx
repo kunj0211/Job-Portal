@@ -1,11 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAppDispatch } from '../store'
 import { createJob, updateJob, type Job } from '../store'
+import { jobService } from '../api/jobService'
 import { toast } from 'react-toastify'
 import { HiX } from 'react-icons/hi'
+import { HiOutlineSparkles } from 'react-icons/hi'
 
 const jobSchema = z.object({
 	title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -29,11 +31,14 @@ interface JobModalProps {
 
 const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 	const dispatch = useAppDispatch()
+	const [isGenerating, setIsGenerating] = useState(false)
 
 	const {
 		register,
 		handleSubmit,
 		reset,
+		setValue,
+		watch,
 		formState: { errors, isSubmitting },
 	} = useForm<JobFormValues>({
 		resolver: zodResolver(jobSchema),
@@ -59,6 +64,28 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 	}, [jobToEdit, reset, isOpen])
 
 	if (!isOpen) return null
+
+	const handleGenerateAI = async () => {
+		const title = watch('title')
+		const company = watch('company')
+
+		if (!title) {
+			toast.info('Please enter a job title first')
+			return
+		}
+
+		try {
+			setIsGenerating(true)
+			const response = await jobService.generateJobDescription(title, company)
+			setValue('description', response.description)
+			toast.success('Description generated!')
+		} catch (error: any) {
+			const errorMsg = error.response?.data?.error || 'Failed to generate description. Please try again.'
+			toast.error(errorMsg)
+		} finally {
+			setIsGenerating(false)
+		}
+	}
 
 	const onSubmit = async (data: JobFormValues) => {
 		try {
@@ -208,9 +235,27 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 						</div>
 
 						<div>
-							<label className='block text-sm font-semibold text-slate-700 mb-1'>
-								Job Description
-							</label>
+							<div className='flex justify-between items-center mb-1'>
+								<label className='block text-sm font-semibold text-slate-700'>
+									Job Description
+								</label>
+								<button
+									type='button'
+									onClick={handleGenerateAI}
+									disabled={isGenerating}
+									className='flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-all border border-emerald-100 disabled:opacity-50 group active:scale-95'
+								>
+									{isGenerating ? (
+										<div className='w-3 h-3 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin'></div>
+									) : (
+										<HiOutlineSparkles
+											className='text-emerald-500 group-hover:rotate-12 transition-transform'
+											size={14}
+										/>
+									)}
+									AI Generate
+								</button>
+							</div>
 							<textarea
 								{...register('description')}
 								rows={5}

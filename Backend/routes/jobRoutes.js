@@ -12,6 +12,9 @@ router.use(verifyToken)
 // POST /api/jobs -> Create a job
 router.post('/', jobController.createJob)
 
+// POST /api/jobs/generate-description -> Generate a job description using AI
+router.post('/generate-description', jobController.generateDescription)
+
 // GET /api/jobs/me -> Get all jobs for the logged in recruiter
 router.get('/me', jobController.getRecruiterJobs)
 
