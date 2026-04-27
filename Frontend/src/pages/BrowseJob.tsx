@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { jobService } from '../api/jobService'
 import JobDetail from '../components/JobDetail'
-import { HiSearch } from 'react-icons/hi'
+import { HiSearch, HiOutlineBriefcase } from 'react-icons/hi'
 
 interface Job {
 	id: string
@@ -82,93 +82,115 @@ const BrowseJob = () => {
 
 	return (
 		<>
-			<div className='min-h-screen max-w-7xl mx-auto px-4 py-12'>
-				<div className='mb-8 flex justify-end items-center'>
+			<div className='p-8 font-sans max-w-7xl mx-auto min-h-screen'>
+				{/* Header Area */}
+				<div className='flex flex-col md:flex-row justify-between items-center mb-10 pb-6 border-b border-slate-200 gap-4'>
+					<div>
+						<h1 className='text-3xl font-bold text-slate-800 tracking-tight'>Browse Jobs</h1>
+						<p className='text-slate-500 mt-1'>Find your next career opportunity</p>
+					</div>
 					<div className='relative w-full max-w-xs'>
 						<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
 							<HiSearch className='text-slate-400' size={18} />
 						</div>
 						<input
 							type='text'
-							placeholder='Search jobs, companies, or locations...'
-							className='block w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 bg-white transition-all outline-none text-sm'
+							placeholder='Search jobs, companies...'
+							className='block w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-900 bg-white transition-all outline-none text-sm shadow-sm'
 							value={keyword}
 							onChange={(e) => setKeyword(e.target.value)}
 						/>
 					</div>
 				</div>
-				<div className='flex flex-wrap gap-2 '>
-					{loading && (
-						<div className='flex justify-center items-center h-64 w-full'>
+
+				{/* Main Content Area */}
+				<div>
+					<h2 className='text-xl font-bold text-slate-800 mb-6 flex items-center gap-2'>
+						Available Positions
+					</h2>
+
+					{loading ? (
+						<div className='flex justify-center p-12'>
 							<div className='w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin'></div>
 						</div>
-					)}
-					{error && <p className='text-lg text-red-600'>{error}</p>}
-					{!loading && !error && jobs?.length === 0 && (
-						<p className='text-lg text-slate-600 px-4'>
-							{keyword.trim() 
-								? `No jobs found matching "${keyword}"`
-								: 'No jobs available at the moment.'
-							}
-						</p>
-					)}
-					<div className='flex flex-wrap gap-4 w-full m-3'>
-						{!loading &&
-							!error &&
-							jobs?.map((job) => (
+					) : error ? (
+						<div className='bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-center'>
+							{error}
+						</div>
+					) : jobs?.length === 0 ? (
+						<div className='text-center p-16 bg-white/50 backdrop-blur-sm rounded-3xl border border-emerald-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]'>
+							<div className='w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner border border-emerald-100/50'>
+								<HiOutlineBriefcase className='text-emerald-400' size={36} />
+							</div>
+							<h3 className='text-xl font-bold text-slate-800 mb-2 tracking-tight'>
+								{keyword.trim() ? 'No matching jobs found' : 'No jobs available'}
+							</h3>
+							<p className='text-slate-500 mb-4 max-w-md mx-auto'>
+								{keyword.trim() 
+									? `We couldn't find any jobs matching "${keyword}". Try adjusting your search.`
+									: 'Check back later for new career opportunities.'}
+							</p>
+						</div>
+					) : (
+						<div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'>
+							{jobs?.map((job) => (
 								<div
 									key={job.id}
-									className='bg-white rounded-lg shadow-md p-6 border border-slate-200 w-full md:w-[48%] lg:w-[31%] cursor-pointer transition duration-300 ease-in-out hover:shadow-lg hover:-translate-y-3'
+									className='bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-emerald-100/50 shadow-[0_2px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.08)] transition-all duration-300 relative group flex flex-col h-full cursor-pointer'
 									onClick={() => {
 										setSelectedJob(job)
 										setIsOpen(true)
 									}}
 								>
-									<div className='mb-4'>
-										<h3 className='text-xl font-bold text-slate-900 mb-1'>
+									<div className='flex justify-between items-start mb-4'>
+										<h3 className='font-bold text-xl text-slate-800 line-clamp-1' title={job.title}>
 											{job.title}
 										</h3>
-										<div className='flex items-center gap-2 mt-2'>
-											<p className='text-lg text-slate-600'>
-												{job.company}
-											</p>
-										</div>
-										<div className='flex items-center gap-2 mt-2'>
-											<p className='text-sm text-slate-600'>
-												<span className='font-medium text-emerald-600'>
-													Salary Range:&nbsp;
-												</span>
-												{job.salaryRange}
-											</p>
-										</div>
-										<div className='flex items-center gap-2 mt-2'>
-											<p className='text-md text-slate-600'>
-												<span className='font-medium text-emerald-600'>
-													Location:&nbsp;
-												</span>
-												{job.location}
-											</p>
-										</div>
 									</div>
-									<div className='flex flex-col gap-2'>
-										<p className='text-sm text-slate-600'>
-											<span className='font-medium text-emerald-600'>
-												Job Type:
-											</span>{' '}
-											{job.jobType}
-										</p>
+
+									<div className='flex flex-col gap-3 mb-5 grow'>
+										<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
+											<div className='p-1.5 text-emerald-600'>Company :</div>
+											{job.company}
+										</div>
+										<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
+											<div className='p-1.5 text-emerald-600'>Location :</div>
+											{job.location}
+										</div>
+										<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
+											<div className='p-1.5 text-emerald-600'>Job Type :</div>
+											<span>{job.jobType}</span>
+										</div>
 										{job.experience && (
-											<p className='text-sm text-slate-600'>
-												<span className='font-medium text-emerald-600'>
-													Experience:
-												</span>{' '}
-												{job.experience}
-											</p>
+											<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
+												<div className='p-1.5 text-emerald-600'>Experience :</div>
+												<span>{job.experience}</span>
+											</div>
 										)}
+										{job.salaryRange && (
+											<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
+												<div className='p-1.5 text-emerald-600'>Salary Range :</div>
+												<span>{job.salaryRange}</span>
+											</div>
+										)}
+									</div>
+
+									<div className='w-full'>
+										<button
+											className='w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-sm hover:shadow-emerald-200'
+											onClick={(e) => {
+												e.stopPropagation();
+												setSelectedJob(job);
+												setIsOpen(true);
+											}}
+										>
+											View Details & Apply
+										</button>
 									</div>
 								</div>
 							))}
-					</div>
+						</div>
+					)}
 				</div>
 			</div>
 			<JobDetail
