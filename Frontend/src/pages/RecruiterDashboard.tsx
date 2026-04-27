@@ -12,7 +12,6 @@ import {
 	HiOutlineTrendingUp,
 	HiOutlineCheckCircle,
 	HiOutlineLightBulb,
-	HiOutlineChevronRight,
 } from 'react-icons/hi'
 import { MdDashboard } from 'react-icons/md'
 import JobModal from '../components/JobModal'
@@ -328,12 +327,7 @@ const RecruiterDashboard = () => {
 										</span>
 									</div>
 								</div>
-								<button 
-									onClick={() => setIsJobModalOpen(true)}
-									className='mt-6 w-full py-3 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-sm shadow-emerald-200'
-								>
-									Post a New Job <HiOutlineChevronRight />
-								</button>
+
 							</motion.div>
 
 							<motion.div variants={itemVariants} className='bg-linear-to-br from-emerald-600 to-teal-800 rounded-3xl p-6 text-white shadow-lg shadow-emerald-900/20 relative overflow-hidden'>
