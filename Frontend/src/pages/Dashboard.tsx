@@ -342,24 +342,7 @@ const Dashboard = () => {
 								</div>
 							</motion.div>
 
-							<motion.div
-								variants={itemVariants}
-								className='bg-linear-to-br from-emerald-600 to-teal-800 rounded-3xl p-6 text-white shadow-lg shadow-emerald-900/20 relative overflow-hidden group'
-							>
-								<div className='absolute right-10 top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700'></div>
-								<h3 className='text-xl font-bold mb-2 relative z-10'>
-									Stay Ahead
-								</h3>
-								<p className='text-emerald-100 text-sm font-medium mb-6 relative z-10 leading-relaxed'>
-									Upload your latest resume to apply faster to new job openings.
-								</p>
-								<button
-									onClick={() => navigate('/profile')}
-									className='w-full py-2.5 bg-white text-emerald-700 hover:bg-emerald-50 text-sm font-bold rounded-xl transition-all relative z-10 shadow-sm cursor-pointer active:scale-95'
-								>
-									Manage Resume
-								</button>
-							</motion.div>
+
 						</div>
 					</div>
 				</motion.div>
