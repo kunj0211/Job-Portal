@@ -373,6 +373,7 @@ exports.getRecruiterApplications = async (req, res) => {
 					resumeUrl: app.resumeUrl || null,
 					appliedAt: app.appliedAt,
 					status: app.status || 'pending',
+					rejectionReason: app.rejectionReason || null,
 				})
 			}
 		})
@@ -451,11 +452,15 @@ exports.getCandidateApplications = async (req, res) => {
 exports.updateApplicationStatus = async (req, res) => {
 	try {
 		const { id } = req.params
-		const { status } = req.body
+		const { status, rejectionReason } = req.body
 		const recruiterId = req.user.uid
 
 		if (!['pending', 'accepted', 'rejected'].includes(status)) {
 			return res.status(400).json({ error: 'Invalid status' })
+		}
+
+		if (status === 'rejected' && (!rejectionReason || rejectionReason.trim() === '')) {
+			return res.status(400).json({ error: 'Rejection reason is required' })
 		}
 
 		const applicationRef = db.collection('applications').doc(id)
@@ -475,10 +480,18 @@ exports.updateApplicationStatus = async (req, res) => {
 				.json({ error: 'Unauthorized to update this application' })
 		}
 
-		await applicationRef.update({
+		const updateData = {
 			status,
 			updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-		})
+		}
+
+		if (status === 'rejected') {
+			updateData.rejectionReason = rejectionReason.trim()
+		} else {
+			updateData.rejectionReason = admin.firestore.FieldValue.delete()
+		}
+
+		await applicationRef.update(updateData)
 
 		res.status(200).json({
 			message: 'Application status updated successfully',

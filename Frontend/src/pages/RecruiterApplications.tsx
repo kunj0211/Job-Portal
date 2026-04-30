@@ -7,6 +7,7 @@ import {
 	HiOutlineDocumentText,
 	HiXCircle,
 } from 'react-icons/hi'
+import RejectionModal from '../components/RejectionModal'
 
 interface Applicant {
 	applicationId: string
@@ -16,6 +17,7 @@ interface Applicant {
 	resumeUrl?: string
 	appliedAt: any
 	status: string
+	rejectionReason?: string
 }
 
 interface JobWithApplicants {
@@ -29,6 +31,8 @@ const RecruiterApplications = () => {
 	const [data, setData] = useState<JobWithApplicants[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
+	const [rejectingAppId, setRejectingAppId] = useState<{jobId: string, appId: string, candidateName: string} | null>(null)
+
 
 	useEffect(() => {
 		const fetchApplications = async () => {
@@ -54,9 +58,10 @@ const RecruiterApplications = () => {
 		jobId: string,
 		applicationId: string,
 		status: string,
+		reason?: string
 	) => {
 		try {
-			await jobService.updateApplicationStatus(applicationId, status)
+			await jobService.updateApplicationStatus(applicationId, status, reason)
 			setData((prev) =>
 				prev.map((job) => {
 					if (job.id === jobId) {
@@ -64,7 +69,7 @@ const RecruiterApplications = () => {
 							...job,
 							applicants: job.applicants.map((app) =>
 								app.applicationId === applicationId
-									? { ...app, status }
+									? { ...app, status, rejectionReason: reason }
 									: app,
 							),
 						}
@@ -195,7 +200,7 @@ const RecruiterApplications = () => {
 														No CV /Resume provided
 													</div>
 												)}
-												{app.status === 'pending' && (
+												{app.status === 'pending' && rejectingAppId?.appId !== app.applicationId && (
 													<div className='mt-3 flex gap-2'>
 														<button
 															onClick={() =>
@@ -213,13 +218,9 @@ const RecruiterApplications = () => {
 															Accept
 														</button>
 														<button
-															onClick={() =>
-																handleUpdateStatus(
-																	job.id,
-																	app.applicationId,
-																	'rejected',
-																)
-															}
+															onClick={() => {
+																setRejectingAppId({ jobId: job.id, appId: app.applicationId, candidateName: app.name })
+															}}
 															className='flex-1 py-1.5 flex justify-center items-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold rounded-lg border border-red-200 transition-colors cursor-pointer'
 														>
 															<HiXCircle
@@ -227,6 +228,14 @@ const RecruiterApplications = () => {
 															/>{' '}
 															Reject
 														</button>
+													</div>
+												)}
+												
+												{app.status === 'rejected' && app.rejectionReason && (
+													<div className='mt-3 p-2 bg-red-50 border border-red-100 rounded-lg'>
+														<p className='text-xs text-red-800 font-medium'>
+															<span className='font-bold'>Reason:</span> {app.rejectionReason}
+														</p>
 													</div>
 												)}
 											</div>
@@ -238,6 +247,18 @@ const RecruiterApplications = () => {
 					))}
 				</div>
 			</div>
+
+			{rejectingAppId && (
+				<RejectionModal
+					isOpen={!!rejectingAppId}
+					onClose={() => setRejectingAppId(null)}
+					candidateName={rejectingAppId.candidateName}
+					onConfirm={(reason) => {
+						handleUpdateStatus(rejectingAppId.jobId, rejectingAppId.appId, 'rejected', reason)
+						setRejectingAppId(null)
+					}}
+				/>
+			)}
 		</div>
 	)
 }

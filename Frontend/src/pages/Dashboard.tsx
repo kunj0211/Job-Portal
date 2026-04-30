@@ -25,6 +25,7 @@ interface Application {
 		company: string
 		location: string
 	}
+	rejectionReason?: string
 }
 
 const Dashboard = () => {
@@ -244,48 +245,56 @@ const Dashboard = () => {
 									applications.map((app) => (
 										<div
 											key={app.id}
-											className='p-6 hover:bg-slate-50 transition-all flex items-center justify-between gap-4 group cursor-default'
+											className='p-6 hover:bg-slate-50 transition-all flex flex-col gap-4 group cursor-default'
 										>
-											<div className='flex items-center gap-4'>
-												<div className='w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 font-black text-sm border-2 border-white shadow-sm group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors'>
-													{app.job.company.charAt(0).toUpperCase()}
-												</div>
-												<div>
-													<p className='text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors'>
-														{app.job.title}
-													</p>
-													<div className='flex items-center gap-3 mt-1'>
-														<p className='text-sm font-bold text-slate-500'>
-															{app.job.company}
+											<div className='flex items-center justify-between gap-4'>
+												<div className='flex items-center gap-4'>
+													<div className='w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 font-black text-sm border-2 border-white shadow-sm group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors'>
+														{app.job.company.charAt(0).toUpperCase()}
+													</div>
+													<div>
+														<p className='text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors'>
+															{app.job.title}
 														</p>
-														<span className='w-1 h-1 bg-slate-300 rounded-full'></span>
-														<p className='text-sm text-slate-400 flex items-center gap-1 font-medium'>
-															<MdLocationPin className='text-slate-300' />
-															{app.job.location}
-														</p>
+														<div className='flex items-center gap-3 mt-1'>
+															<p className='text-sm font-bold text-slate-500'>
+																{app.job.company}
+															</p>
+															<span className='w-1 h-1 bg-slate-300 rounded-full'></span>
+															<p className='text-sm text-slate-400 flex items-center gap-1 font-medium'>
+																<MdLocationPin className='text-slate-300' />
+																{app.job.location}
+															</p>
+														</div>
 													</div>
 												</div>
+												<div className='flex flex-col items-end gap-2'>
+													<span
+														className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+															app.status === 'accepted'
+																? 'bg-emerald-100 text-emerald-700'
+																: app.status === 'rejected'
+																	? 'bg-red-100 text-red-700'
+																	: 'bg-amber-100 text-amber-700'
+														}`}
+													>
+														{app.status || 'Pending'}
+													</span>
+													<span className='text-[10px] font-bold text-slate-400'>
+														{app.appliedAt
+															? new Date(
+																	app.appliedAt._seconds * 1000,
+																).toLocaleDateString()
+															: 'Recent'}
+													</span>
+												</div>
 											</div>
-											<div className='flex flex-col items-end gap-2'>
-												<span
-													className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-														app.status === 'accepted'
-															? 'bg-emerald-100 text-emerald-700'
-															: app.status === 'rejected'
-																? 'bg-red-100 text-red-700'
-																: 'bg-amber-100 text-amber-700'
-													}`}
-												>
-													{app.status || 'Pending'}
-												</span>
-												<span className='text-[10px] font-bold text-slate-400'>
-													{app.appliedAt
-														? new Date(
-																app.appliedAt._seconds * 1000,
-															).toLocaleDateString()
-														: 'Recent'}
-												</span>
-											</div>
+											{app.status === 'rejected' && app.rejectionReason && (
+												<div className='bg-red-50 p-3 rounded-xl border border-red-100 text-sm'>
+													<span className='font-bold text-red-800'>Rejection Reason:</span>
+													<p className='text-red-700 mt-1'>{app.rejectionReason}</p>
+												</div>
+											)}
 										</div>
 									))
 								)}

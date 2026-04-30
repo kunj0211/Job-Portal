@@ -47,10 +47,14 @@ export const jobService = {
 		const response = await axios.get(`${API_URL}/applications`)
 		return response.data
 	},
-	updateApplicationStatus: async (applicationId: string, status: string) => {
+	updateApplicationStatus: async (applicationId: string, status: string, rejectionReason?: string) => {
+		const payload: any = { status }
+		if (status === 'rejected' && rejectionReason) {
+			payload.rejectionReason = rejectionReason
+		}
 		const response = await axios.put(
 			`${API_URL}/applications/${applicationId}/status`,
-			{ status },
+			payload,
 		)
 		return response.data
 	},
