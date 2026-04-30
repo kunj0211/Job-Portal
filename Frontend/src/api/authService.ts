@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_URL = '/api/auth'
+const BASE_URL = import.meta.env.VITE_URL
+const API_URL = `${BASE_URL}/api/auth`
 
 // Configure axios defaults for cookie support
 axios.defaults.withCredentials = true
@@ -59,12 +60,12 @@ export const authService = {
 		const response = await axios.get(`${API_URL}/me`)
 		return response.data
 	},
-	updateProfile: async (profileData: { 
-		displayName?: string; 
-		resumeUrl?: string;
-		title?: string;
-		experience?: string;
-		skills?: string[];
+	updateProfile: async (profileData: {
+		displayName?: string
+		resumeUrl?: string
+		title?: string
+		experience?: string
+		skills?: string[]
 	}) => {
 		const response = await axios.put(`${API_URL}/profile`, profileData)
 		return response.data
