@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector, fetchRecruiterJobs, deleteJob, type Job } from '../store';
 import JobModal from '../components/JobModal';
 import DeleteJobModal from '../components/DeleteJobModal';
+import Pagination from '../components/Pagination';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineBriefcase } from 'react-icons/hi';
 import { toast } from 'react-toastify';
 
@@ -13,6 +14,8 @@ const AddJob = () => {
   const [jobToEdit, setJobToEdit] = useState<Job | null>(null);
   const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(9);
 
   useEffect(() => {
     dispatch(fetchRecruiterJobs());
@@ -45,6 +48,18 @@ const AddJob = () => {
     setJobToEdit(null);
     setIsModalOpen(true);
   };
+
+  const totalPages = Math.ceil(jobs.length / itemsPerPage);
+  const paginatedJobs = jobs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [jobs.length, currentPage, totalPages]);
 
   return (
     <div className="p-8 font-sans max-w-7xl mx-auto">
@@ -89,9 +104,10 @@ const AddJob = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {jobs.map((job) => (
-              <div key={job.id} className="bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-emerald-100/50 shadow-[0_2px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.08)] transition-all duration-300 relative group flex flex-col h-full">
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {paginatedJobs.map((job) => (
+                <div key={job.id} className="bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-emerald-100/50 shadow-[0_2px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.08)] transition-all duration-300 relative group flex flex-col h-full">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="font-bold text-xl text-slate-800 line-clamp-1" title={job.title}>
                     {job.title}
@@ -144,7 +160,21 @@ const AddJob = () => {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+            
+            {jobs.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                onItemsPerPageChange={(items) => {
+                  setItemsPerPage(items);
+                  setCurrentPage(1);
+                }}
+              />
+            )}
+          </>
         )}
       </div>
 

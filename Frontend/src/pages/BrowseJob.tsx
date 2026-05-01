@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { jobService } from '../api/jobService'
 import JobDetail from '../components/JobDetail'
+import Pagination from '../components/Pagination'
 import { HiSearch, HiOutlineBriefcase } from 'react-icons/hi'
 
 interface Job {
@@ -23,6 +24,9 @@ const BrowseJob = () => {
 	const [selectedJob, setSelectedJob] = useState<Job>()
 	const [keyword, setKeyword] = useState<string>('')
 	const [abortController, setAbortController] = useState<AbortController | null>(null)
+	
+	const [currentPage, setCurrentPage] = useState(1)
+	const [itemsPerPage, setItemsPerPage] = useState(9)
 
 	const fetchJobs = async (searchParams?: { keyword?: string; location?: string }) => {
 		// Abort any pending request
@@ -75,10 +79,18 @@ const BrowseJob = () => {
 	useEffect(() => {
 		const debounceTimer = setTimeout(() => {
 			fetchJobs({ keyword })
+			setCurrentPage(1)
 		}, 300) // 300ms debounce
 
 		return () => clearTimeout(debounceTimer)
 	}, [keyword])
+
+	const paginatedJobs = jobs?.slice(
+		(currentPage - 1) * itemsPerPage,
+		currentPage * itemsPerPage
+	)
+	
+	const totalPages = jobs ? Math.ceil(jobs.length / itemsPerPage) : 0
 
 	return (
 		<>
@@ -132,10 +144,11 @@ const BrowseJob = () => {
 							</p>
 						</div>
 					) : (
-						<div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'>
-							{jobs?.map((job) => (
-								<div
-									key={job.id}
+						<>
+							<div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'>
+								{paginatedJobs?.map((job) => (
+									<div
+										key={job.id}
 									className='bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-emerald-100/50 shadow-[0_2px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.08)] transition-all duration-300 relative group flex flex-col h-full cursor-pointer'
 									onClick={() => {
 										setSelectedJob(job)
@@ -187,9 +200,23 @@ const BrowseJob = () => {
 											View Details & Apply
 										</button>
 									</div>
-								</div>
-							))}
-						</div>
+									</div>
+								))}
+							</div>
+							
+							{jobs && jobs.length > 0 && (
+								<Pagination
+									currentPage={currentPage}
+									totalPages={totalPages}
+									onPageChange={setCurrentPage}
+									itemsPerPage={itemsPerPage}
+									onItemsPerPageChange={(items) => {
+										setItemsPerPage(items)
+										setCurrentPage(1)
+									}}
+								/>
+							)}
+						</>
 					)}
 				</div>
 			</div>
