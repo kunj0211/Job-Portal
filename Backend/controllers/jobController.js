@@ -186,13 +186,11 @@ exports.getAllJobs = async (req, res) => {
 					const title = (job.title || '').toLowerCase()
 					const company = (job.company || '').toLowerCase()
 					const location = (job.location || '').toLowerCase()
-					const description = (job.description || '').toLowerCase()
 
 					return (
 						title.includes(query) ||
 						company.includes(query) ||
-						location.includes(query) ||
-						description.includes(query)
+						location.includes(query)
 					)
 				})
 			}

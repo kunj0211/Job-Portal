@@ -1,5 +1,3 @@
-import { HiOutlineChevronLeft, HiOutlineChevronRight } from 'react-icons/hi'
-
 interface PaginationProps {
 	currentPage: number
 	totalPages: number
