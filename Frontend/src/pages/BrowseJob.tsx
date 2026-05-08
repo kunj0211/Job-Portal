@@ -23,12 +23,16 @@ const BrowseJob = () => {
 	const [isOpen, setIsOpen] = useState<boolean>(false)
 	const [selectedJob, setSelectedJob] = useState<Job>()
 	const [keyword, setKeyword] = useState<string>('')
-	const [abortController, setAbortController] = useState<AbortController | null>(null)
-	
-	const [currentPage, setCurrentPage] = useState(1)
-	const [itemsPerPage, setItemsPerPage] = useState(9)
+	const [abortController, setAbortController] =
+		useState<AbortController | null>(null)
 
-	const fetchJobs = async (searchParams?: { keyword?: string; location?: string }) => {
+	const [currentPage, setCurrentPage] = useState(1)
+	const [itemsPerPage, setItemsPerPage] = useState(6)
+
+	const fetchJobs = async (searchParams?: {
+		keyword?: string
+		location?: string
+	}) => {
 		// Abort any pending request
 		if (abortController) {
 			abortController.abort()
@@ -41,18 +45,21 @@ const BrowseJob = () => {
 			setLoading(true)
 			const data = await jobService.getAllJobs({
 				...(searchParams || {}),
-				signal: controller.signal
+				signal: controller.signal,
 			})
-			
+
 			let filteredJobs = data.jobs || []
-			
+
 			// Frontend filtering fallback
-			const query = (searchParams?.keyword || keyword || '').trim().toLowerCase()
+			const query = (searchParams?.keyword || keyword || '')
+				.trim()
+				.toLowerCase()
 			if (query) {
-				filteredJobs = filteredJobs.filter((job: Job) => 
-					(job.title || '').toLowerCase().includes(query) ||
-					(job.company || '').toLowerCase().includes(query) ||
-					(job.location || '').toLowerCase().includes(query)
+				filteredJobs = filteredJobs.filter(
+					(job: Job) =>
+						(job.title || '').toLowerCase().includes(query) ||
+						(job.company || '').toLowerCase().includes(query) ||
+						(job.location || '').toLowerCase().includes(query),
 				)
 			}
 
@@ -86,9 +93,9 @@ const BrowseJob = () => {
 
 	const paginatedJobs = jobs?.slice(
 		(currentPage - 1) * itemsPerPage,
-		currentPage * itemsPerPage
+		currentPage * itemsPerPage,
 	)
-	
+
 	const totalPages = jobs ? Math.ceil(jobs.length / itemsPerPage) : 0
 
 	return (
@@ -97,8 +104,12 @@ const BrowseJob = () => {
 				{/* Header Area */}
 				<div className='flex flex-col md:flex-row justify-between items-center mb-10 pb-6 border-b border-slate-200 gap-4'>
 					<div>
-						<h1 className='text-3xl font-bold text-slate-800 tracking-tight'>Browse Jobs</h1>
-						<p className='text-slate-500 mt-1'>Find your next career opportunity</p>
+						<h1 className='text-3xl font-bold text-slate-800 tracking-tight'>
+							Browse Jobs
+						</h1>
+						<p className='text-slate-500 mt-1'>
+							Find your next career opportunity
+						</p>
 					</div>
 					<div className='relative w-full max-w-xs'>
 						<div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
@@ -131,13 +142,18 @@ const BrowseJob = () => {
 					) : jobs?.length === 0 ? (
 						<div className='text-center p-16 bg-white/50 backdrop-blur-sm rounded-3xl border border-emerald-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)]'>
 							<div className='w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner border border-emerald-100/50'>
-								<HiOutlineBriefcase className='text-emerald-400' size={36} />
+								<HiOutlineBriefcase
+									className='text-emerald-400'
+									size={36}
+								/>
 							</div>
 							<h3 className='text-xl font-bold text-slate-800 mb-2 tracking-tight'>
-								{keyword.trim() ? 'No matching jobs found' : 'No jobs available'}
+								{keyword.trim()
+									? 'No matching jobs found'
+									: 'No jobs available'}
 							</h3>
 							<p className='text-slate-500 mb-4 max-w-md mx-auto'>
-								{keyword.trim() 
+								{keyword.trim()
 									? `We couldn't find any jobs matching "${keyword}". Try adjusting your search.`
 									: 'Check back later for new career opportunities.'}
 							</p>
@@ -148,61 +164,78 @@ const BrowseJob = () => {
 								{paginatedJobs?.map((job) => (
 									<div
 										key={job.id}
-									className='bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-emerald-100/50 shadow-[0_2px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.08)] transition-all duration-300 relative group flex flex-col h-full cursor-pointer'
-									onClick={() => {
-										setSelectedJob(job)
-										setIsOpen(true)
-									}}
-								>
-									<div className='flex justify-between items-start mb-4'>
-										<h3 className='font-bold text-xl text-slate-800 line-clamp-1' title={job.title}>
-											{job.title}
-										</h3>
-									</div>
+										className='bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-emerald-100/50 shadow-[0_2px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.08)] transition-all duration-300 relative group flex flex-col h-full cursor-pointer'
+										onClick={() => {
+											setSelectedJob(job)
+											setIsOpen(true)
+										}}
+									>
+										<div className='flex justify-between items-start mb-4'>
+											<h3
+												className='font-bold text-xl text-slate-800 line-clamp-1'
+												title={job.title}
+											>
+												{job.title}
+											</h3>
+										</div>
 
-									<div className='flex flex-col gap-3 mb-5 grow'>
-										<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
-											<div className='p-1.5 text-emerald-600'>Company :</div>
-											{job.company}
-										</div>
-										<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
-											<div className='p-1.5 text-emerald-600'>Location :</div>
-											{job.location}
-										</div>
-										<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
-											<div className='p-1.5 text-emerald-600'>Job Type :</div>
-											<span>{job.jobType}</span>
-										</div>
-										{job.experience && (
+										<div className='flex flex-col gap-3 mb-5 grow'>
 											<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
-												<div className='p-1.5 text-emerald-600'>Experience :</div>
-												<span>{job.experience}</span>
+												<div className='p-1.5 text-emerald-600'>
+													Company :
+												</div>
+												{job.company}
 											</div>
-										)}
-										{job.salaryRange && (
 											<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
-												<div className='p-1.5 text-emerald-600'>Salary Range :</div>
-												<span>{job.salaryRange}</span>
+												<div className='p-1.5 text-emerald-600'>
+													Location :
+												</div>
+												{job.location}
 											</div>
-										)}
-									</div>
+											<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
+												<div className='p-1.5 text-emerald-600'>
+													Job Type :
+												</div>
+												<span>{job.jobType}</span>
+											</div>
+											{job.experience && (
+												<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
+													<div className='p-1.5 text-emerald-600'>
+														Experience :
+													</div>
+													<span>
+														{job.experience}
+													</span>
+												</div>
+											)}
+											{job.salaryRange && (
+												<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
+													<div className='p-1.5 text-emerald-600'>
+														Salary Range :
+													</div>
+													<span>
+														{job.salaryRange}
+													</span>
+												</div>
+											)}
+										</div>
 
-									<div className='w-full'>
-										<button
-											className='w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-sm hover:shadow-emerald-200'
-											onClick={(e) => {
-												e.stopPropagation();
-												setSelectedJob(job);
-												setIsOpen(true);
-											}}
-										>
-											View Details & Apply
-										</button>
-									</div>
+										<div className='w-full'>
+											<button
+												className='w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-sm hover:shadow-emerald-200'
+												onClick={(e) => {
+													e.stopPropagation()
+													setSelectedJob(job)
+													setIsOpen(true)
+												}}
+											>
+												View Details & Apply
+											</button>
+										</div>
 									</div>
 								))}
 							</div>
-							
+
 							{jobs && jobs.length > 0 && (
 								<Pagination
 									currentPage={currentPage}
