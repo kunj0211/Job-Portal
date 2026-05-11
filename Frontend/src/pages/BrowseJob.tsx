@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { jobService } from '../api/jobService'
+import { useEffect, useState, useMemo } from 'react'
+import { useGetAllJobsQuery } from '../api/jobApi'
 import JobDetail from '../components/JobDetail'
 import Pagination from '../components/Pagination'
 import { HiSearch, HiOutlineBriefcase } from 'react-icons/hi'
@@ -17,79 +17,47 @@ interface Job {
 }
 
 const BrowseJob = () => {
-	const [jobs, setJobs] = useState<Job[]>()
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
 	const [isOpen, setIsOpen] = useState<boolean>(false)
 	const [selectedJob, setSelectedJob] = useState<Job>()
 	const [keyword, setKeyword] = useState<string>('')
-	const [abortController, setAbortController] =
-		useState<AbortController | null>(null)
+	const [debouncedKeyword, setDebouncedKeyword] = useState<string>('')
 
 	const [currentPage, setCurrentPage] = useState(1)
 	const [itemsPerPage, setItemsPerPage] = useState(6)
 
-	const fetchJobs = async (searchParams?: {
-		keyword?: string
-		location?: string
-	}) => {
-		// Abort any pending request
-		if (abortController) {
-			abortController.abort()
-		}
-
-		const controller = new AbortController()
-		setAbortController(controller)
-
-		try {
-			setLoading(true)
-			const data = await jobService.getAllJobs({
-				...(searchParams || {}),
-				signal: controller.signal,
-			})
-
-			let filteredJobs = data.jobs || []
-
-			// Frontend filtering fallback
-			const query = (searchParams?.keyword || keyword || '')
-				.trim()
-				.toLowerCase()
-			if (query) {
-				filteredJobs = filteredJobs.filter(
-					(job: Job) =>
-						(job.title || '').toLowerCase().includes(query) ||
-						(job.company || '').toLowerCase().includes(query) ||
-						(job.location || '').toLowerCase().includes(query),
-				)
-			}
-
-			setJobs(filteredJobs)
-			setError(null)
-		} catch (err: any) {
-			if (err.name === 'CanceledError' || err.name === 'AbortError') {
-				// Request was aborted, ignore error
-				return
-			}
-			console.error('Error fetching jobs:', err)
-			const errorMessage =
-				err.response?.data?.error ||
-				err.message ||
-				'Failed to load jobs'
-			setError(errorMessage)
-			setJobs([])
-		} finally {
-			setLoading(false)
-		}
-	}
-
 	useEffect(() => {
 		const debounceTimer = setTimeout(() => {
-			fetchJobs({ keyword })
+			setDebouncedKeyword(keyword)
 			setCurrentPage(1)
-		}, 300) // 300ms debounce
+		}, 300)
 
 		return () => clearTimeout(debounceTimer)
 	}, [keyword])
+
+	const {
+		data,
+		isLoading: loading,
+		error: fetchError,
+	} = useGetAllJobsQuery(
+		debouncedKeyword ? { keyword: debouncedKeyword } : {},
+	)
+	const error = fetchError
+		? (fetchError as any).data?.error || 'Failed to load jobs'
+		: null
+
+	const jobs = useMemo(() => {
+		let filteredJobs: Job[] = data?.jobs || []
+		const query = debouncedKeyword.trim().toLowerCase()
+		if (query) {
+			filteredJobs = filteredJobs.filter(
+				(job: Job) =>
+					(job.title || '').toLowerCase().includes(query) ||
+					(job.company || '').toLowerCase().includes(query) ||
+					(job.location || '').toLowerCase().includes(query),
+			)
+		}
+		return filteredJobs
+	}, [data, debouncedKeyword])
 
 	const paginatedJobs = jobs?.slice(
 		(currentPage - 1) * itemsPerPage,

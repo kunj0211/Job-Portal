@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import {
-	useAppDispatch,
-	useAppSelector,
-	fetchRecruiterJobs,
-	deleteJob,
+	useGetRecruiterJobsQuery,
+	useDeleteJobMutation,
 	type Job,
-} from '../store'
+} from '../api/jobApi'
 import JobModal from '../components/JobModal'
 import DeleteJobModal from '../components/DeleteJobModal'
 import Pagination from '../components/Pagination'
@@ -18,8 +16,9 @@ import {
 import { toast } from 'react-toastify'
 
 const AddJob = () => {
-	const { jobs, loading } = useAppSelector((state) => state.jobs)
-	const dispatch = useAppDispatch()
+	const { data, isLoading: loading } = useGetRecruiterJobsQuery()
+	const jobs: Job[] = data?.jobs || []
+	const [deleteJob] = useDeleteJobMutation()
 
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [jobToEdit, setJobToEdit] = useState<Job | null>(null)
@@ -27,10 +26,6 @@ const AddJob = () => {
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [currentPage, setCurrentPage] = useState(1)
 	const [itemsPerPage, setItemsPerPage] = useState(5)
-
-	useEffect(() => {
-		dispatch(fetchRecruiterJobs())
-	}, [dispatch])
 
 	const handleEdit = (job: Job) => {
 		setJobToEdit(job)
@@ -45,7 +40,7 @@ const AddJob = () => {
 		if (!deleteJobId) return
 		setIsDeleting(true)
 		try {
-			await dispatch(deleteJob(deleteJobId)).unwrap()
+			await deleteJob(deleteJobId).unwrap()
 			toast.success('Job deleted successfully')
 		} catch (error) {
 			toast.error('Failed to delete job')
@@ -74,7 +69,6 @@ const AddJob = () => {
 
 	return (
 		<div className='p-4 md:p-8 font-sans max-w-7xl mx-auto'>
-			{/* Header Area */}
 			<div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 md:mb-10 pb-6 border-b border-slate-200 gap-4 sm:gap-0'>
 				<div>
 					<h1 className='text-2xl md:text-3xl font-bold text-slate-800 tracking-tight'>
@@ -92,7 +86,6 @@ const AddJob = () => {
 				</div>
 			</div>
 
-			{/* Main Content Area */}
 			<div>
 				<h2 className='text-xl font-bold text-slate-800 mb-6 flex items-center gap-2'>
 					Your Job Postings

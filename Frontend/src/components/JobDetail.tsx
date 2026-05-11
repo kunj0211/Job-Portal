@@ -3,9 +3,9 @@ import { MdLocationPin } from 'react-icons/md'
 import { LuClock8, LuUser } from 'react-icons/lu'
 import { FaWallet } from 'react-icons/fa'
 import { MdOutlineDescription } from 'react-icons/md'
-import { useState, useEffect } from 'react'
+
 import { useAppSelector } from '../store'
-import { jobService } from '../api/jobService'
+import { useApplyForJobMutation } from '../api/jobApi'
 import { toast } from 'react-toastify'
 interface Job {
 	id: string
@@ -29,30 +29,20 @@ const JobDetail = ({
 	onClose: () => void
 }) => {
 	const { user } = useAppSelector((state) => state.auth)
-	const [loading, setLoading] = useState(false)
-
-	// Reset state when a different job is selected or the modal is opened/closed
-	useEffect(() => {
-		setLoading(false)
-	}, [job?.id, isOpen])
+	const [applyForJob, { isLoading }] = useApplyForJobMutation()
 
 	if (!isOpen || !job) return null
 
 	const handleApply = async () => {
 		try {
-			setLoading(true)
-			const response = await jobService.applyForJob(job.id)
+			const response = await applyForJob(job.id).unwrap()
 			toast.success(response.message || 'Applied successfully!')
 			onClose()
 		} catch (err: any) {
 			console.error('Error applying for job:', err)
 			const errorMessage =
-				err.response?.data?.error ||
-				err.message ||
-				'Failed to apply for job'
+				err.data?.error || err.message || 'Failed to apply for job'
 			toast.error(errorMessage)
-		} finally {
-			setLoading(false)
 		}
 	}
 
@@ -154,14 +144,14 @@ const JobDetail = ({
 					<div className='px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end'>
 						<button
 							onClick={handleApply}
-							disabled={loading}
+							disabled={isLoading}
 							className={`px-8 py-2.5 rounded-xl font-bold text-white transition-all shadow-md active:scale-95 ${
-								loading
+								isLoading
 									? 'bg-slate-400 cursor-not-allowed'
 									: 'bg-emerald-600 hover:bg-emerald-700'
 							}`}
 						>
-							{loading ? 'Applying...' : 'Apply Now'}
+							{isLoading ? 'Applying...' : 'Apply Now'}
 						</button>
 					</div>
 				)}

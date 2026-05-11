@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useAppDispatch } from '../store'
-import { createJob, updateJob, type Job } from '../store'
-import { jobService } from '../api/jobService'
+import {
+	useCreateJobMutation,
+	useUpdateJobMutation,
+	useGenerateJobDescriptionMutation,
+	type Job,
+} from '../api/jobApi'
 import { toast } from 'react-toastify'
 import { HiX } from 'react-icons/hi'
 import { HiOutlineSparkles } from 'react-icons/hi'
@@ -30,8 +33,11 @@ interface JobModalProps {
 }
 
 const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
-	const dispatch = useAppDispatch()
 	const [isGenerating, setIsGenerating] = useState(false)
+
+	const [createJob] = useCreateJobMutation()
+	const [updateJob] = useUpdateJobMutation()
+	const [generateJobDescription] = useGenerateJobDescriptionMutation()
 
 	const {
 		register,
@@ -76,11 +82,16 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 
 		try {
 			setIsGenerating(true)
-			const response = await jobService.generateJobDescription(title, company)
+			const response = await generateJobDescription({
+				title,
+				company,
+			}).unwrap()
 			setValue('description', response.description)
 			toast.success('Description generated!')
 		} catch (error: any) {
-			const errorMsg = error.response?.data?.error || 'Failed to generate description. Please try again.'
+			const errorMsg =
+				error.data?.error ||
+				'Failed to generate description. Please try again.'
 			toast.error(errorMsg)
 		} finally {
 			setIsGenerating(false)
@@ -90,18 +101,18 @@ const JobModal = ({ isOpen, onClose, jobToEdit }: JobModalProps) => {
 	const onSubmit = async (data: JobFormValues) => {
 		try {
 			if (jobToEdit && jobToEdit.id) {
-				await dispatch(
-					updateJob({ id: jobToEdit.id, jobData: data }),
-				).unwrap()
+				await updateJob({ id: jobToEdit.id, jobData: data }).unwrap()
 				toast.success('Job updated successfully!')
 			} else {
-				await dispatch(createJob(data as Job)).unwrap()
+				await createJob(data).unwrap()
 				toast.success('Job posted successfully!')
 			}
 			onClose()
 			reset()
 		} catch (error: any) {
-			toast.error(error || 'An error occurred')
+			toast.error(
+				error.data?.error || error.message || 'An error occurred',
+			)
 		}
 	}
 
