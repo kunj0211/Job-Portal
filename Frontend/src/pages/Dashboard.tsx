@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react'
 import { useAppSelector } from '../store'
 import { useNavigate } from 'react-router-dom'
-import { jobService } from '../api/jobService'
+import { useGetMyApplicationsQuery } from '../api/jobApi'
 import { motion } from 'framer-motion'
 import {
 	HiClock,
@@ -32,28 +31,16 @@ const Dashboard = () => {
 	const { user } = useAppSelector((state) => state.auth)
 	const navigate = useNavigate()
 
-	const [applications, setApplications] = useState<Application[]>([])
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
-
-	useEffect(() => {
-		if (user) {
-			fetchData()
-		}
-	}, [user])
-
-	const fetchData = async () => {
-		try {
-			setLoading(true)
-			const appsData = await jobService.getMyApplications()
-			setApplications(appsData.applications || [])
-		} catch (err: any) {
-			console.error('Error fetching dashboard data:', err)
-			setError('Failed to load your applications')
-		} finally {
-			setLoading(false)
-		}
-	}
+	const {
+		data: appsData,
+		isLoading: appsLoading,
+		error: fetchError,
+	} = useGetMyApplicationsQuery(undefined, {
+		skip: !user,
+	})
+	const applications: Application[] = appsData?.applications || []
+	const loading = appsLoading
+	const error = fetchError ? 'Failed to load your applications' : null
 
 	if (!user) return null
 
@@ -109,7 +96,8 @@ const Dashboard = () => {
 						<span className='text-slate-800 font-bold'>
 							{user.displayName || 'Candidate'}
 						</span>
-						. Track your applications and find your next opportunity.
+						. Track your applications and find your next
+						opportunity.
 					</p>
 				</div>
 				<div className='flex gap-3'>
@@ -147,7 +135,9 @@ const Dashboard = () => {
 								<h3 className='text-3xl font-black text-slate-900 mb-1'>
 									{stats.total}
 								</h3>
-								<p className='text-sm font-bold text-slate-500'>Applied Jobs</p>
+								<p className='text-sm font-bold text-slate-500'>
+									Applied Jobs
+								</p>
 							</div>
 						</motion.div>
 
@@ -183,7 +173,9 @@ const Dashboard = () => {
 								<h3 className='text-3xl font-black text-slate-900 mb-1'>
 									{stats.accepted}
 								</h3>
-								<p className='text-sm font-bold text-slate-500'>Accepted</p>
+								<p className='text-sm font-bold text-slate-500'>
+									Accepted
+								</p>
 							</div>
 						</motion.div>
 
@@ -200,7 +192,9 @@ const Dashboard = () => {
 								<h3 className='text-3xl font-black text-slate-900 mb-1'>
 									{stats.rejected}
 								</h3>
-								<p className='text-sm font-bold text-slate-500'>Rejected</p>
+								<p className='text-sm font-bold text-slate-500'>
+									Rejected
+								</p>
 							</div>
 						</motion.div>
 					</div>
@@ -217,10 +211,13 @@ const Dashboard = () => {
 									Application Status
 								</h2>
 								<button
-									onClick={() => navigate('/candidate/browseJobs')}
+									onClick={() =>
+										navigate('/candidate/browseJobs')
+									}
 									className='link-theme text-sm flex items-center gap-1 hover:gap-2 transition-all'
 								>
-									Find More <HiOutlineChevronRight size={14} />
+									Find More{' '}
+									<HiOutlineChevronRight size={14} />
 								</button>
 							</div>
 
@@ -232,10 +229,15 @@ const Dashboard = () => {
 								) : applications.length === 0 ? (
 									<div className='p-12 text-center'>
 										<p className='text-slate-400 italic mb-6'>
-											You haven't applied for any jobs yet.
+											You haven't applied for any jobs
+											yet.
 										</p>
 										<button
-											onClick={() => navigate('/candidate/browseJobs')}
+											onClick={() =>
+												navigate(
+													'/candidate/browseJobs',
+												)
+											}
 											className='link-theme'
 										>
 											Browse Job Openings
@@ -250,7 +252,9 @@ const Dashboard = () => {
 											<div className='flex items-center justify-between gap-4'>
 												<div className='flex items-center gap-4'>
 													<div className='w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 font-black text-sm border-2 border-white shadow-sm group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors'>
-														{app.job.company.charAt(0).toUpperCase()}
+														{app.job.company
+															.charAt(0)
+															.toUpperCase()}
 													</div>
 													<div>
 														<p className='text-base font-bold text-slate-900 group-hover:text-emerald-700 transition-colors'>
@@ -258,12 +262,18 @@ const Dashboard = () => {
 														</p>
 														<div className='flex items-center gap-3 mt-1'>
 															<p className='text-sm font-bold text-slate-500'>
-																{app.job.company}
+																{
+																	app.job
+																		.company
+																}
 															</p>
 															<span className='w-1 h-1 bg-slate-300 rounded-full'></span>
 															<p className='text-sm text-slate-400 flex items-center gap-1 font-medium'>
 																<MdLocationPin className='text-slate-300' />
-																{app.job.location}
+																{
+																	app.job
+																		.location
+																}
 															</p>
 														</div>
 													</div>
@@ -271,30 +281,43 @@ const Dashboard = () => {
 												<div className='flex flex-col items-end gap-2'>
 													<span
 														className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-															app.status === 'accepted'
+															app.status ===
+															'accepted'
 																? 'bg-emerald-100 text-emerald-700'
-																: app.status === 'rejected'
+																: app.status ===
+																	  'rejected'
 																	? 'bg-red-100 text-red-700'
 																	: 'bg-amber-100 text-amber-700'
 														}`}
 													>
-														{app.status || 'Pending'}
+														{app.status ||
+															'Pending'}
 													</span>
 													<span className='text-[10px] font-bold text-slate-400'>
 														{app.appliedAt
 															? new Date(
-																	app.appliedAt._seconds * 1000,
+																	app
+																		.appliedAt
+																		._seconds *
+																		1000,
 																).toLocaleDateString()
 															: 'Recent'}
 													</span>
 												</div>
 											</div>
-											{app.status === 'rejected' && app.rejectionReason && (
-												<div className='bg-red-50 p-3 rounded-xl border border-red-100 text-sm'>
-													<span className='font-bold text-red-800'>Rejection Reason:</span>
-													<p className='text-red-700 mt-1'>{app.rejectionReason}</p>
-												</div>
-											)}
+											{app.status === 'rejected' &&
+												app.rejectionReason && (
+													<div className='bg-red-50 p-3 rounded-xl border border-red-100 text-sm'>
+														<span className='font-bold text-red-800'>
+															Rejection Reason:
+														</span>
+														<p className='text-red-700 mt-1'>
+															{
+																app.rejectionReason
+															}
+														</p>
+													</div>
+												)}
 										</div>
 									))
 								)}
@@ -314,7 +337,9 @@ const Dashboard = () => {
 									<div className='flex mb-2 items-center justify-between'>
 										<div>
 											<span className='text-[10px] font-black inline-block py-1 px-2 uppercase rounded-lg text-emerald-700 bg-emerald-100 tracking-wider'>
-												{completeness === 100 ? 'Complete' : 'Professional'}
+												{completeness === 100
+													? 'Complete'
+													: 'Professional'}
 											</span>
 										</div>
 										<div className='text-right'>
@@ -345,13 +370,13 @@ const Dashboard = () => {
 										onClick={() => navigate('/profile')}
 										className='mt-6 w-full py-3 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 flex items-center justify-center gap-2 active:scale-95'
 									>
-										{completeness === 100 ? 'View Profile' : 'Complete Profile'}{' '}
+										{completeness === 100
+											? 'View Profile'
+											: 'Complete Profile'}{' '}
 										<HiOutlineChevronRight />
 									</button>
 								</div>
 							</motion.div>
-
-
 						</div>
 					</div>
 				</motion.div>

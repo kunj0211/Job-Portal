@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react'
-import { jobService } from '../api/jobService'
+import { useState } from 'react'
+import {
+	useGetApplicationsQuery,
+	useUpdateApplicationStatusMutation,
+} from '../api/jobApi'
 import { toast } from 'react-toastify'
 import {
 	HiOutlineUserCircle,
@@ -28,58 +31,36 @@ interface JobWithApplicants {
 }
 
 const RecruiterApplications = () => {
-	const [data, setData] = useState<JobWithApplicants[]>([])
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
-	const [rejectingAppId, setRejectingAppId] = useState<{jobId: string, appId: string, candidateName: string} | null>(null)
+	const {
+		data: appsData,
+		isLoading: loading,
+		error: fetchError,
+	} = useGetApplicationsQuery()
+	const data: JobWithApplicants[] = appsData?.applications || []
+	const error = fetchError
+		? (fetchError as any).data?.error || 'Failed to load applications'
+		: null
+	const [rejectingAppId, setRejectingAppId] = useState<{
+		appId: string
+		candidateName: string
+	} | null>(null)
 
-
-	useEffect(() => {
-		const fetchApplications = async () => {
-			try {
-				setLoading(true)
-				const response = await jobService.getApplications()
-				setData(response.applications || [])
-				setError(null)
-			} catch (err: any) {
-				console.error('Error fetching applications:', err)
-				setError(
-					err.response?.data?.error || 'Failed to load applications',
-				)
-			} finally {
-				setLoading(false)
-			}
-		}
-
-		fetchApplications()
-	}, [])
+	const [updateStatus] = useUpdateApplicationStatusMutation()
 
 	const handleUpdateStatus = async (
-		jobId: string,
 		applicationId: string,
 		status: string,
-		reason?: string
+		reason?: string,
 	) => {
 		try {
-			await jobService.updateApplicationStatus(applicationId, status, reason)
-			setData((prev) =>
-				prev.map((job) => {
-					if (job.id === jobId) {
-						return {
-							...job,
-							applicants: job.applicants.map((app) =>
-								app.applicationId === applicationId
-									? { ...app, status, rejectionReason: reason }
-									: app,
-							),
-						}
-					}
-					return job
-				}),
-			)
+			await updateStatus({
+				applicationId,
+				status,
+				rejectionReason: reason,
+			}).unwrap()
 			toast.success(`Application marked as ${status}`)
 		} catch (err: any) {
-			toast.error(err.response?.data?.error || 'Failed to update status')
+			toast.error(err.data?.error || 'Failed to update status')
 		}
 	}
 
@@ -200,44 +181,57 @@ const RecruiterApplications = () => {
 														No CV /Resume provided
 													</div>
 												)}
-												{app.status === 'pending' && rejectingAppId?.appId !== app.applicationId && (
-													<div className='mt-3 flex gap-2'>
-														<button
-															onClick={() =>
-																handleUpdateStatus(
-																	job.id,
-																	app.applicationId,
-																	'accepted',
-																)
-															}
-															className='flex-1 py-1.5 flex justify-center items-center gap-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 text-xs font-bold rounded-lg border border-emerald-200 transition-colors cursor-pointer'
-														>
-															<HiCheckCircle
-																size={14}
-															/>{' '}
-															Accept
-														</button>
-														<button
-															onClick={() => {
-																setRejectingAppId({ jobId: job.id, appId: app.applicationId, candidateName: app.name })
-															}}
-															className='flex-1 py-1.5 flex justify-center items-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold rounded-lg border border-red-200 transition-colors cursor-pointer'
-														>
-															<HiXCircle
-																size={14}
-															/>{' '}
-															Reject
-														</button>
-													</div>
-												)}
-												
-												{app.status === 'rejected' && app.rejectionReason && (
-													<div className='mt-3 p-2 bg-red-50 border border-red-100 rounded-lg'>
-														<p className='text-xs text-red-800 font-medium'>
-															<span className='font-bold'>Reason:</span> {app.rejectionReason}
-														</p>
-													</div>
-												)}
+												{app.status === 'pending' &&
+													rejectingAppId?.appId !==
+														app.applicationId && (
+														<div className='mt-3 flex gap-2'>
+															<button
+																onClick={() =>
+																	handleUpdateStatus(
+																		app.applicationId,
+																		'accepted',
+																	)
+																}
+																className='flex-1 py-1.5 flex justify-center items-center gap-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 text-xs font-bold rounded-lg border border-emerald-200 transition-colors cursor-pointer'
+															>
+																<HiCheckCircle
+																	size={14}
+																/>{' '}
+																Accept
+															</button>
+															<button
+																onClick={() => {
+																	setRejectingAppId(
+																		{
+																			appId: app.applicationId,
+																			candidateName:
+																				app.name,
+																		},
+																	)
+																}}
+																className='flex-1 py-1.5 flex justify-center items-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-bold rounded-lg border border-red-200 transition-colors cursor-pointer'
+															>
+																<HiXCircle
+																	size={14}
+																/>{' '}
+																Reject
+															</button>
+														</div>
+													)}
+
+												{app.status === 'rejected' &&
+													app.rejectionReason && (
+														<div className='mt-3 p-2 bg-red-50 border border-red-100 rounded-lg'>
+															<p className='text-xs text-red-800 font-medium'>
+																<span className='font-bold'>
+																	Reason:
+																</span>{' '}
+																{
+																	app.rejectionReason
+																}
+															</p>
+														</div>
+													)}
 											</div>
 										))}
 									</div>
@@ -254,7 +248,11 @@ const RecruiterApplications = () => {
 					onClose={() => setRejectingAppId(null)}
 					candidateName={rejectingAppId.candidateName}
 					onConfirm={(reason) => {
-						handleUpdateStatus(rejectingAppId.jobId, rejectingAppId.appId, 'rejected', reason)
+						handleUpdateStatus(
+							rejectingAppId.appId,
+							'rejected',
+							reason,
+						)
 						setRejectingAppId(null)
 					}}
 				/>
