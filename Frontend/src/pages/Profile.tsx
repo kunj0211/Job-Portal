@@ -186,66 +186,68 @@ const Profile = () => {
 							</div>
 
 							<div className='space-y-8'>
-								<div className='pt-8 border-t border-slate-100'>
-									<h3 className='text-lg font-bold text-slate-800 mb-4'>
-										Resume Management
-									</h3>
-									<div className='flex justify-between items-center mb-2'>
-										<label className='block text-sm font-semibold text-slate-700'>
-											My Resume
-										</label>
-										{user?.resumeUrl && (
-											<button
-												onClick={handleViewResume}
-												className='text-xs font-bold text-emerald-600 hover:underline flex items-center gap-1 bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors'
-											>
-												View Current{' '}
-												<HiOutlineDocumentText />
-											</button>
-										)}
-									</div>
-
-									<div className='space-y-4'>
-										<div>
-											<label className='block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1'>
-												Upload PDF Resume
+								{user?.role === 'candidate' && (
+									<div className='pt-8 border-t border-slate-100'>
+										<h3 className='text-lg font-bold text-slate-800 mb-4'>
+											Resume Management
+										</h3>
+										<div className='flex justify-between items-center mb-2'>
+											<label className='block text-sm font-semibold text-slate-700'>
+												My Resume
 											</label>
-											<div className='flex flex-col gap-1'>
-												{isEditing ? (
-													<div className='flex items-center gap-4'>
-														<input
-															type='file'
-															accept='application/pdf'
-															onChange={
-																handleResumeUpload
-															}
-															disabled={
-																isUploadingResume
-															}
-															className='block w-full text-sm text-slate-500
-															file:mr-4 file:py-2.5 file:px-4
-															file:rounded-xl file:border-0
-															file:text-sm file:font-semibold
-															file:bg-emerald-50 file:text-emerald-700
-															hover:file:bg-emerald-100 disabled:opacity-50 transition-all cursor-pointer'
-														/>
-														{isUploadingResume && (
-															<span className='text-xs text-emerald-600 font-bold animate-pulse whitespace-nowrap'>
-																Uploading...
-															</span>
-														)}
-													</div>
-												) : (
-													<p className='text-sm text-slate-600 px-1 truncate'>
-														{user?.resumeUrl
-															? 'Resume is uploaded'
-															: 'No resume uploaded yet'}
-													</p>
-												)}
+											{user?.resumeUrl && (
+												<button
+													onClick={handleViewResume}
+													className='text-xs font-bold text-emerald-600 hover:underline flex items-center gap-1 bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors'
+												>
+													View Current{' '}
+													<HiOutlineDocumentText />
+												</button>
+											)}
+										</div>
+
+										<div className='space-y-4'>
+											<div>
+												<label className='block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1'>
+													Upload PDF Resume
+												</label>
+												<div className='flex flex-col gap-1'>
+													{isEditing ? (
+														<div className='flex items-center gap-4'>
+															<input
+																type='file'
+																accept='application/pdf'
+																onChange={
+																	handleResumeUpload
+																}
+																disabled={
+																	isUploadingResume
+																}
+																className='block w-full text-sm text-slate-500
+																file:mr-4 file:py-2.5 file:px-4
+																file:rounded-xl file:border-0
+																file:text-sm file:font-semibold
+																file:bg-emerald-50 file:text-emerald-700
+																hover:file:bg-emerald-100 disabled:opacity-50 transition-all cursor-pointer'
+															/>
+															{isUploadingResume && (
+																<span className='text-xs text-emerald-600 font-bold animate-pulse whitespace-nowrap'>
+																	Uploading...
+																</span>
+															)}
+														</div>
+													) : (
+														<p className='text-sm text-slate-600 px-1 truncate'>
+															{user?.resumeUrl
+																? 'Resume is uploaded'
+																: 'No resume uploaded yet'}
+														</p>
+													)}
+												</div>
 											</div>
 										</div>
 									</div>
-								</div>
+								)}
 
 								<div className='pt-8 border-t border-slate-100'>
 									<h3 className='text-lg font-bold text-slate-800 mb-4'>
