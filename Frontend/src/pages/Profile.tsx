@@ -27,9 +27,8 @@ const Profile = () => {
 	const dispatch = useAppDispatch()
 	const [loading, setLoading] = useState(true)
 	const [isEditing, setIsEditing] = useState(false)
-	const [currentResumeUrl, setCurrentResumeUrl] = useState<string | null>(
-		null,
-	)
+
+	const [isUploadingResume, setIsUploadingResume] = useState(false)
 
 	const {
 		register,
@@ -61,7 +60,6 @@ const Profile = () => {
 			}
 
 			reset(initialValues)
-			setCurrentResumeUrl(u.resumeUrl || null)
 		} catch (err) {
 			console.error('Error fetching profile:', err)
 			toast.error('Failed to load profile data')
@@ -88,12 +86,47 @@ const Profile = () => {
 			})
 
 			await dispatch(checkAuth()).unwrap()
-			setCurrentResumeUrl(data.resumeUrl || null)
 			setIsEditing(false)
 			toast.success('Profile updated successfully!')
 		} catch (err) {
 			console.error('Error updating profile:', err)
 			toast.error('Failed to update profile')
+		}
+	}
+
+	const handleResumeUpload = async (
+		e: React.ChangeEvent<HTMLInputElement>,
+	) => {
+		const file = e.target.files?.[0]
+		if (!file) return
+
+		if (file.type !== 'application/pdf') {
+			toast.error('Only PDF files are allowed')
+			return
+		}
+
+		try {
+			setIsUploadingResume(true)
+			await authService.uploadResume(file)
+			await dispatch(checkAuth()).unwrap() // refresh user data
+			toast.success('Resume uploaded successfully!')
+		} catch (err) {
+			console.error('Error uploading resume:', err)
+			toast.error('Failed to upload resume')
+		} finally {
+			setIsUploadingResume(false)
+		}
+	}
+
+	const handleViewResume = async (e: React.MouseEvent) => {
+		e.preventDefault
+		if (!user?.uid) return
+		try {
+			const url = await authService.viewResume(user.uid)
+			window.open(url, '_blank')
+		} catch (err) {
+			console.error('Error viewing resume:', err)
+			toast.error('Failed to load resume')
 		}
 	}
 
@@ -161,47 +194,52 @@ const Profile = () => {
 										<label className='block text-sm font-semibold text-slate-700'>
 											My Resume
 										</label>
-										{currentResumeUrl && (
-											<a
-												href={currentResumeUrl}
-												target='_blank'
-												rel='noreferrer'
-												className='text-xs font-bold text-emerald-600 hover:underline flex items-center gap-1'
+										{user?.resumeUrl && (
+											<button
+												onClick={handleViewResume}
+												className='text-xs font-bold text-emerald-600 hover:underline flex items-center gap-1 bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors'
 											>
 												View Current{' '}
 												<HiOutlineDocumentText />
-											</a>
+											</button>
 										)}
 									</div>
 
 									<div className='space-y-4'>
 										<div>
 											<label className='block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1'>
-												Resume Link (Google Drive,
-												Dropbox, etc.)
+												Upload PDF Resume
 											</label>
 											<div className='flex flex-col gap-1'>
 												{isEditing ? (
-													<input
-														{...register(
-															'resumeUrl',
+													<div className='flex items-center gap-4'>
+														<input
+															type='file'
+															accept='application/pdf'
+															onChange={
+																handleResumeUpload
+															}
+															disabled={
+																isUploadingResume
+															}
+															className='block w-full text-sm text-slate-500
+															file:mr-4 file:py-2.5 file:px-4
+															file:rounded-xl file:border-0
+															file:text-sm file:font-semibold
+															file:bg-emerald-50 file:text-emerald-700
+															hover:file:bg-emerald-100 disabled:opacity-50 transition-all cursor-pointer'
+														/>
+														{isUploadingResume && (
+															<span className='text-xs text-emerald-600 font-bold animate-pulse whitespace-nowrap'>
+																Uploading...
+															</span>
 														)}
-														type='url'
-														placeholder='https://drive.google.com/...'
-														className={`w-full px-4 py-2 text-sm rounded-xl bg-slate-50 border focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none ${errors.resumeUrl ? 'border-red-400' : 'border-slate-200 focus:border-emerald-500'}`}
-													/>
+													</div>
 												) : (
 													<p className='text-sm text-slate-600 px-1 truncate'>
-														{currentResumeUrl ||
-															'No resume link provided'}
-													</p>
-												)}
-												{errors.resumeUrl && (
-													<p className='text-[10px] text-red-500 ml-1 font-bold'>
-														{
-															errors.resumeUrl
-																.message
-														}
+														{user?.resumeUrl
+															? 'Resume is uploaded'
+															: 'No resume uploaded yet'}
 													</p>
 												)}
 											</div>
