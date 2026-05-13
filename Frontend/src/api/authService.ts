@@ -70,4 +70,25 @@ export const authService = {
 		const response = await axios.put(`${API_URL}/profile`, profileData)
 		return response.data
 	},
+	uploadResume: async (file: File) => {
+		const formData = new FormData()
+		formData.append('resume', file)
+		const response = await axios.post(
+			`${API_URL}/resume/upload`,
+			formData,
+			{
+				headers: {
+					'Content-Type': 'multipart/form-data',
+				},
+			},
+		)
+		return response.data
+	},
+	viewResume: async (userId: string) => {
+		const response = await axios.get(`${API_URL}/resume/${userId}`, {
+			responseType: 'blob',
+		})
+		const blob = new Blob([response.data], { type: 'application/pdf' })
+		return URL.createObjectURL(blob)
+	},
 }

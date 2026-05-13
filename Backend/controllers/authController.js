@@ -1,4 +1,5 @@
 const { admin, db } = require('../config/firebase')
+const crypto = require('crypto')
 
 // Utility to get the Firebase API Key
 const getApiKey = () => process.env.FIREBASE_API_KEY
@@ -153,7 +154,9 @@ exports.login = async (req, res) => {
 		let role = userRecord.customClaims?.role || 'candidate'
 
 		if (!userDoc.exists) {
-			console.log(`[Auth] Creating missing Firestore document for user ${data.localId}`)
+			console.log(
+				`[Auth] Creating missing Firestore document for user ${data.localId}`,
+			)
 			await userRef.set({
 				uid: data.localId,
 				email: data.email,
@@ -164,7 +167,7 @@ exports.login = async (req, res) => {
 			})
 		} else {
 			await userRef.update({
-				lastLogin: admin.firestore.FieldValue.serverTimestamp()
+				lastLogin: admin.firestore.FieldValue.serverTimestamp(),
 			})
 			role = userDoc.data().role || role
 		}
@@ -179,9 +182,13 @@ exports.login = async (req, res) => {
 				email: data.email,
 				displayName: data.displayName,
 				role,
-				resumeUrl: userDoc.exists ? userDoc.data().resumeUrl : undefined,
+				resumeUrl: userDoc.exists
+					? userDoc.data().resumeUrl
+					: undefined,
 				title: userDoc.exists ? userDoc.data().title : undefined,
-				experience: userDoc.exists ? userDoc.data().experience : undefined,
+				experience: userDoc.exists
+					? userDoc.data().experience
+					: undefined,
 				skills: userDoc.exists ? userDoc.data().skills : undefined,
 			},
 		})
@@ -212,10 +219,10 @@ exports.googleSignIn = async (req, res) => {
 
 		if (!userDoc.exists) {
 			// First-time Google login - we don't know the role yet
-			role = req.body.role || 'candidate' 
-			
+			role = req.body.role || 'candidate'
+
 			await admin.auth().setCustomUserClaims(uid, { role })
-			
+
 			await userRef.set({
 				uid,
 				email,
@@ -228,7 +235,7 @@ exports.googleSignIn = async (req, res) => {
 			// Existing user - update lastLogin
 			role = userDoc.data().role
 			await userRef.update({
-				lastLogin: admin.firestore.FieldValue.serverTimestamp()
+				lastLogin: admin.firestore.FieldValue.serverTimestamp(),
 			})
 		}
 
@@ -243,9 +250,13 @@ exports.googleSignIn = async (req, res) => {
 				displayName: name,
 				picture,
 				role,
-				resumeUrl: userDoc.exists ? userDoc.data().resumeUrl : undefined,
+				resumeUrl: userDoc.exists
+					? userDoc.data().resumeUrl
+					: undefined,
 				title: userDoc.exists ? userDoc.data().title : undefined,
-				experience: userDoc.exists ? userDoc.data().experience : undefined,
+				experience: userDoc.exists
+					? userDoc.data().experience
+					: undefined,
 				skills: userDoc.exists ? userDoc.data().skills : undefined,
 			},
 		})
@@ -269,7 +280,9 @@ exports.refreshTokens = async (req, res) => {
 			`https://securetoken.googleapis.com/v1/token?key=${apiKey}`,
 			{
 				method: 'POST',
-				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
 				body: new URLSearchParams({
 					grant_type: 'refresh_token',
 					refresh_token: refreshToken,
@@ -316,7 +329,7 @@ exports.checkAuth = async (req, res) => {
 			}
 			resumeUrl = userDoc.data().resumeUrl
 		}
-		
+
 		res.status(200).json({
 			user: {
 				uid: userRecord.uid,
@@ -325,9 +338,11 @@ exports.checkAuth = async (req, res) => {
 				role: role || 'candidate', // Default to candidate if still missing
 				resumeUrl,
 				title: userDoc.exists ? userDoc.data().title : undefined,
-				experience: userDoc.exists ? userDoc.data().experience : undefined,
+				experience: userDoc.exists
+					? userDoc.data().experience
+					: undefined,
 				skills: userDoc.exists ? userDoc.data().skills : undefined,
-			}
+			},
 		})
 	} catch (error) {
 		console.error('Check Auth error:', error)
@@ -380,6 +395,146 @@ exports.updateProfile = async (req, res) => {
 		})
 	} catch (error) {
 		console.error('Update profile error:', error)
+		res.status(500).json({ error: 'Internal server error' })
+	}
+}
+
+// Upload and Encrypt Resume to Firestore
+exports.uploadResume = async (req, res) => {
+	try {
+		const { uid } = req.user
+		const file = req.file
+
+		if (!file) {
+			return res.status(400).json({ error: 'No file uploaded' })
+		}
+
+		if (file.mimetype !== 'application/pdf') {
+			return res.status(400).json({ error: 'Only PDF files are allowed' })
+		}
+
+		const encryptionKey = process.env.RESUME_ENCRYPTION_KEY
+		if (!encryptionKey || encryptionKey.length !== 32) {
+			console.error(
+				'RESUME_ENCRYPTION_KEY is missing or invalid in .env (must be 32 chars)',
+			)
+			return res.status(500).json({
+				error: 'Server misconfiguration: Encryption key missing',
+			})
+		}
+
+		// Generate random IV
+		const iv = crypto.randomBytes(16)
+
+		// Create cipher
+		const cipher = crypto.createCipheriv(
+			'aes-256-cbc',
+			Buffer.from(encryptionKey),
+			iv,
+		)
+
+		// Encrypt file buffer
+		const encryptedBuffer = Buffer.concat([
+			cipher.update(file.buffer),
+			cipher.final(),
+		])
+
+		// Convert to base64
+		const base64Data = encryptedBuffer.toString('base64')
+
+		// Save to Firestore subcollection
+		const resumeDocRef = db
+			.collection('users')
+			.doc(uid)
+			.collection('resumes')
+			.doc('current')
+		await resumeDocRef.set({
+			base64Data,
+			iv: iv.toString('hex'),
+			updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+		})
+
+		// Update main user profile in Firestore
+		const userRef = db.collection('users').doc(uid)
+		await userRef.update({
+			resumeUrl: `/api/auth/resume/${uid}`,
+			updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+		})
+
+		res.status(200).json({
+			message: 'Resume uploaded successfully',
+			resumeUrl: `/api/auth/resume/${uid}`,
+		})
+	} catch (error) {
+		console.error('Upload resume error:', error)
+		res.status(500).json({ error: 'Internal server error' })
+	}
+}
+
+// View/Decrypt Resume from Firestore
+exports.viewResume = async (req, res) => {
+	try {
+		const targetUid = req.params.userId
+		const { uid, role } = req.user // the requester
+
+		// Only the candidate themselves or a recruiter/admin should view it
+		if (uid !== targetUid && role !== 'recruiter' && role !== 'admin') {
+			return res
+				.status(403)
+				.json({ error: 'Unauthorized to view this resume' })
+		}
+
+		const resumeDoc = await db
+			.collection('users')
+			.doc(targetUid)
+			.collection('resumes')
+			.doc('current')
+			.get()
+		if (!resumeDoc.exists) {
+			return res.status(404).json({ error: 'Resume not found' })
+		}
+
+		const resumeData = resumeDoc.data()
+		const base64Data = resumeData.base64Data
+		const ivHex = resumeData.iv
+
+		if (!base64Data || !ivHex) {
+			return res.status(404).json({ error: 'Resume data is invalid' })
+		}
+
+		const encryptionKey = process.env.RESUME_ENCRYPTION_KEY
+		if (!encryptionKey || encryptionKey.length !== 32) {
+			return res.status(500).json({
+				error: 'Server misconfiguration: Encryption key missing',
+			})
+		}
+
+		// Convert base64 back to buffer
+		const encryptedBuffer = Buffer.from(base64Data, 'base64')
+
+		// Decrypt
+		const iv = Buffer.from(ivHex, 'hex')
+		const decipher = crypto.createDecipheriv(
+			'aes-256-cbc',
+			Buffer.from(encryptionKey),
+			iv,
+		)
+		const decryptedBuffer = Buffer.concat([
+			decipher.update(encryptedBuffer),
+			decipher.final(),
+		])
+
+		// Send as PDF
+		res.setHeader('Content-Type', 'application/pdf')
+		res.send(decryptedBuffer)
+	} catch (error) {
+		console.error('View resume error:', error)
+		// Handle specific decryption errors
+		if (error.code === 'ERR_OSSL_EVP_BAD_DECRYPT') {
+			return res.status(500).json({
+				error: 'Failed to decrypt file. Encryption key may be incorrect.',
+			})
+		}
 		res.status(500).json({ error: 'Internal server error' })
 	}
 }
