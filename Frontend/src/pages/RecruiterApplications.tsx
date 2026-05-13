@@ -3,6 +3,7 @@ import {
 	useGetApplicationsQuery,
 	useUpdateApplicationStatusMutation,
 } from '../api/jobApi'
+import { authService } from '../api/authService'
 import { toast } from 'react-toastify'
 import {
 	HiOutlineUserCircle,
@@ -61,6 +62,22 @@ const RecruiterApplications = () => {
 			toast.success(`Application marked as ${status}`)
 		} catch (err: any) {
 			toast.error(err.data?.error || 'Failed to update status')
+		}
+	}
+
+	const handleViewResume = async (
+		e: React.MouseEvent,
+		candidateId: string,
+	) => {
+		e.preventDefault()
+		try {
+			const url = await authService.viewResume(candidateId)
+			window.open(url, '_blank')
+		} catch (err) {
+			console.error('Error viewing resume:', err)
+			toast.error(
+				'Failed to load resume. It may be missing or encrypted improperly.',
+			)
 		}
 	}
 
@@ -165,17 +182,20 @@ const RecruiterApplications = () => {
 												</div>
 
 												{app.resumeUrl ? (
-													<a
-														href={app.resumeUrl}
-														target='_blank'
-														rel='noreferrer'
-														className='w-full py-2 bg-white text-emerald-600 text-xs font-bold rounded-xl border border-emerald-100 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all text-center flex items-center justify-center gap-2'
+													<button
+														onClick={(e) =>
+															handleViewResume(
+																e,
+																app.candidateId,
+															)
+														}
+														className='w-full py-2 bg-white text-emerald-600 text-xs font-bold rounded-xl border border-emerald-100 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all text-center flex items-center justify-center gap-2 cursor-pointer'
 													>
 														<HiOutlineDocumentText
 															size={16}
 														/>
 														View CV / Resume
-													</a>
+													</button>
 												) : (
 													<div className='w-full py-2 bg-slate-50 text-slate-400 text-[10px] font-bold rounded-xl border border-slate-100 text-center uppercase tracking-wider'>
 														No CV /Resume provided
