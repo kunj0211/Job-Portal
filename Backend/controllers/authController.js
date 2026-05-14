@@ -4,26 +4,6 @@ const crypto = require('crypto')
 // Utility to get the Firebase API Key
 const getApiKey = () => process.env.FIREBASE_API_KEY
 
-const cookieOptions = {
-	httpOnly: true,
-	secure: process.env.NODE_ENV === 'production',
-	sameSite: 'strict',
-	maxAge: 3600000, // 1 hour for access token cookie
-}
-
-const refreshTokenOptions = {
-	...cookieOptions,
-	maxAge: 30 * 24 * 3600000, // 30 days for refresh token cookie
-}
-
-// Helper to set auth cookies
-const setAuthCookies = (res, idToken, refreshToken) => {
-	res.cookie('token', idToken, cookieOptions)
-	if (refreshToken) {
-		res.cookie('refreshToken', refreshToken, refreshTokenOptions)
-	}
-}
-
 // Register a new user with email and password
 exports.register = async (req, res) => {
 	const { email, password, displayName, role } = req.body
@@ -42,7 +22,7 @@ exports.register = async (req, res) => {
 			})
 		}
 
-		// 1. Create the user in Firebase Auth via REST API
+		// Create the user in Firebase Auth via REST API
 		const response = await fetch(
 			`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
 			{
@@ -67,15 +47,15 @@ exports.register = async (req, res) => {
 			return res.status(response.status).json({ error: errorMessage })
 		}
 
-		// 2. Set Custom Claims (Role)
+		//  Set Custom Claims (Role)
 		await admin.auth().setCustomUserClaims(data.localId, { role })
 
-		// 3. Update user's display name using Firebase Admin
+		//  Update user's display name using Firebase Admin
 		if (displayName) {
 			await admin.auth().updateUser(data.localId, { displayName })
 		}
 
-		// 4. Save User to Firestore
+		//  Save User to Firestore
 		const userDoc = {
 			uid: data.localId,
 			email: data.email,
@@ -86,12 +66,11 @@ exports.register = async (req, res) => {
 		}
 		await db.collection('users').doc(data.localId).set(userDoc)
 
-		// 5. Set Cookies
-		setAuthCookies(res, data.idToken, data.refreshToken)
-
-		// Return the user data (no token in body)
+		// Return the user data along with tokens
 		res.status(201).json({
 			message: 'User registered successfully',
+			accessToken: data.idToken,
+			refreshToken: data.refreshToken,
 			user: {
 				uid: data.localId,
 				email: data.email,
@@ -172,11 +151,12 @@ exports.login = async (req, res) => {
 			role = userDoc.data().role || role
 		}
 
-		// Set Cookies
-		setAuthCookies(res, data.idToken, data.refreshToken)
+		// setAuth(res, data.idToken, data.refreshToken)
 
 		res.status(200).json({
 			message: 'Login successful',
+			accessToken: data.idToken,
+			refreshToken: data.refreshToken,
 			user: {
 				uid: data.localId,
 				email: data.email,
@@ -239,11 +219,12 @@ exports.googleSignIn = async (req, res) => {
 			})
 		}
 
-		// Set Cookies (both access and refresh)
-		setAuthCookies(res, idToken, refreshToken)
+		// setAuth(res, idToken, refreshToken)
 
 		res.status(200).json({
 			message: 'Google Sign-In successful',
+			accessToken: idToken,
+			refreshToken: refreshToken,
 			user: {
 				uid,
 				email,
@@ -268,7 +249,7 @@ exports.googleSignIn = async (req, res) => {
 
 // Refresh Token Endpoint
 exports.refreshTokens = async (req, res) => {
-	const refreshToken = req.cookies.refreshToken
+	const refreshToken = req.body.refreshToken
 
 	if (!refreshToken) {
 		return res.status(401).json({ error: 'No refresh token provided' })
@@ -296,10 +277,11 @@ exports.refreshTokens = async (req, res) => {
 			return res.status(401).json({ error: 'Invalid refresh token' })
 		}
 
-		// Update cookies with new ID Token
-		res.cookie('token', data.id_token, cookieOptions)
-
-		res.status(200).json({ message: 'Token refreshed' })
+		res.status(200).json({
+			message: 'Token refreshed',
+			accessToken: data.id_token,
+			refreshToken: data.refresh_token,
+		})
 	} catch (error) {
 		console.error('Refresh token error:', error)
 		res.status(500).json({ error: 'Internal server error' })
@@ -308,8 +290,6 @@ exports.refreshTokens = async (req, res) => {
 
 // Logout Endpoint
 exports.logout = (req, res) => {
-	res.clearCookie('token')
-	res.clearCookie('refreshToken')
 	res.status(200).json({ message: 'Logged out successfully' })
 }
 
