@@ -2,7 +2,7 @@ const { admin, db } = require('../config/firebase');
 
 // Middleware to verify Firebase JWT tokens for protected routes
 exports.verifyToken = async (req, res, next) => {
-  const token = req.cookies.token || req.headers.authorization?.split('Bearer ')[1];
+  const token = req.headers.authorization?.split('Bearer ')[1] || req.cookies?.token;
 
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized: No token provided' });

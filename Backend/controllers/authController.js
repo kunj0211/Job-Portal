@@ -249,7 +249,7 @@ exports.googleSignIn = async (req, res) => {
 
 // Refresh Token Endpoint
 exports.refreshTokens = async (req, res) => {
-	const refreshToken = req.body.refreshToken
+	const refreshToken = req.body?.refreshToken
 
 	if (!refreshToken) {
 		return res.status(401).json({ error: 'No refresh token provided' })
