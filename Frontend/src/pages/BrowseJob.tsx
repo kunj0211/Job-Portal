@@ -132,7 +132,7 @@ const BrowseJob = () => {
 								{paginatedJobs?.map((job) => (
 									<div
 										key={job.id}
-										className='bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-emerald-100/50 shadow-[0_2px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.08)] transition-all duration-300 relative group flex flex-col h-full cursor-pointer'
+										className='bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-emerald-100/50 shadow-[0_2px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.08)] transition-all duration-300 relative group flex flex-col h-full'
 										onClick={() => {
 											setSelectedJob(job)
 											setIsOpen(true)
@@ -190,7 +190,7 @@ const BrowseJob = () => {
 
 										<div className='w-full'>
 											<button
-												className='w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-sm hover:shadow-emerald-200'
+												className='w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-sm hover:shadow-emerald-200 cursor-pointer'
 												onClick={(e) => {
 													e.stopPropagation()
 													setSelectedJob(job)
