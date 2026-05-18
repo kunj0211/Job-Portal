@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useGetAllJobsQuery } from '../api/jobApi'
 import JobDetail from '../components/JobDetail'
 import Pagination from '../components/Pagination'
-import { HiSearch, HiOutlineBriefcase } from 'react-icons/hi'
+import { HiSearch, HiOutlineBriefcase, HiOutlineEye } from 'react-icons/hi'
 
 interface Job {
 	id: string
@@ -128,80 +128,73 @@ const BrowseJob = () => {
 						</div>
 					) : (
 						<>
-							<div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'>
-								{paginatedJobs?.map((job) => (
-									<div
-										key={job.id}
-										className='bg-white/80 backdrop-blur-md p-6 rounded-3xl border border-emerald-100/50 shadow-[0_2px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(16,185,129,0.08)] transition-all duration-300 relative group flex flex-col h-full'
-										onClick={() => {
-											setSelectedJob(job)
-											setIsOpen(true)
-										}}
-									>
-										<div className='flex justify-between items-start mb-4'>
-											<h3
-												className='font-bold text-xl text-slate-800 line-clamp-1'
-												title={job.title}
+							<div className='overflow-x-auto bg-white rounded-xl border border-slate-200 shadow-sm -mx-4 sm:mx-0'>
+								<table className='w-full min-w-[900px]'>
+									<thead>
+										<tr className='grid grid-cols-[80px_2fr_1fr_1fr_1fr_1fr_1fr] gap-4 border-b border-slate-200 bg-slate-50/50 px-6 py-4 sticky top-0'>
+											<th className='text-left text-xs font-bold text-slate-600 uppercase tracking-wider'>
+												Actions
+											</th>
+											<th className='text-left text-xs font-bold text-slate-600 uppercase tracking-wider'>
+												Role
+											</th>
+											<th className='text-left text-xs font-bold text-slate-600 uppercase tracking-wider'>
+												Company
+											</th>
+											<th className='text-left text-xs font-bold text-slate-600 uppercase tracking-wider'>
+												Location
+											</th>
+											<th className='text-left text-xs font-bold text-slate-600 uppercase tracking-wider'>
+												Job-type
+											</th>
+											<th className='text-left text-xs font-bold text-slate-600 uppercase tracking-wider'>
+												Salary
+											</th>
+											<th className='text-left text-xs font-bold text-slate-600 uppercase tracking-wider'>
+												Experience
+											</th>
+										</tr>
+									</thead>
+									<tbody className='divide-y divide-slate-200'>
+										{paginatedJobs?.map((job) => (
+											<tr
+												key={job.id}
+												className='grid grid-cols-[80px_2fr_1fr_1fr_1fr_1fr_1fr] gap-4 px-6 py-4 hover:bg-emerald-50 hover:shadow-[0_8px_30px_rgb(16,185,129,0.08)] transition-colors'
 											>
-												{job.title}
-											</h3>
-										</div>
-
-										<div className='flex flex-col gap-3 mb-5 grow'>
-											<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
-												<div className='p-1.5 text-emerald-600'>
-													Company :
-												</div>
-												{job.company}
-											</div>
-											<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
-												<div className='p-1.5 text-emerald-600'>
-													Location :
-												</div>
-												{job.location}
-											</div>
-											<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
-												<div className='p-1.5 text-emerald-600'>
-													Job Type :
-												</div>
-												<span>{job.jobType}</span>
-											</div>
-											{job.experience && (
-												<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
-													<div className='p-1.5 text-emerald-600'>
-														Experience :
-													</div>
-													<span>
-														{job.experience}
-													</span>
-												</div>
-											)}
-											{job.salaryRange && (
-												<div className='flex items-center gap-2.5 text-sm font-medium text-slate-600'>
-													<div className='p-1.5 text-emerald-600'>
-														Salary Range :
-													</div>
-													<span>
-														{job.salaryRange}
-													</span>
-												</div>
-											)}
-										</div>
-
-										<div className='w-full'>
-											<button
-												className='w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all active:scale-95 shadow-sm hover:shadow-emerald-200 cursor-pointer'
-												onClick={(e) => {
-													e.stopPropagation()
-													setSelectedJob(job)
-													setIsOpen(true)
-												}}
-											>
-												View Details & Apply
-											</button>
-										</div>
-									</div>
-								))}
+												<td className='flex items-center gap-2 '>
+													<button
+														onClick={() => {
+															setSelectedJob(job)
+															setIsOpen(true)
+														}}
+														className='p-1.5 text-slate-700 hover:text-emerald-600 hover:bg-emerald-100 rounded-lg hover:cursor-pointer transition-colors shadow-sm'
+														title='View Details'
+													>
+														<HiOutlineEye size={18} />
+													</button>
+												</td>
+												<td className='text-sm font-semibold text-slate-900 truncate flex items-center'>
+													{job.title}
+												</td>
+												<td className='text-sm truncate flex items-center'>
+													{job.company}
+												</td>
+												<td className='text-sm text-slate-700 truncate flex items-center'>
+													{job.location}
+												</td>
+												<td className='text-sm text-slate-700 flex items-center'>
+													{job.jobType}
+												</td>
+												<td className='text-sm text-slate-700 flex items-center'>
+													{job.salaryRange || 'N/A'}
+												</td>
+												<td className='text-sm text-slate-700 flex items-center'>
+													{job.experience || 'N/A'}
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
 							</div>
 
 							{jobs && jobs.length > 0 && (
