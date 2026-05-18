@@ -129,7 +129,7 @@ const BrowseJob = () => {
 					) : (
 						<>
 							<div className='overflow-x-auto bg-white rounded-xl border border-slate-200 shadow-sm -mx-4 sm:mx-0'>
-								<table className='w-full min-w-[900px]'>
+								<table className='w-full min-w-225'>
 									<thead>
 										<tr className='grid grid-cols-[80px_2fr_1fr_1fr_1fr_1fr_1fr] gap-4 border-b border-slate-200 bg-slate-50/50 px-6 py-4 sticky top-0'>
 											<th className='text-left text-xs font-bold text-slate-600 uppercase tracking-wider'>
@@ -170,7 +170,9 @@ const BrowseJob = () => {
 														className='p-1.5 text-slate-700 hover:text-emerald-600 hover:bg-emerald-100 rounded-lg hover:cursor-pointer transition-colors shadow-sm'
 														title='View Details'
 													>
-														<HiOutlineEye size={18} />
+														<HiOutlineEye
+															size={18}
+														/>
 													</button>
 												</td>
 												<td className='text-sm font-semibold text-slate-900 truncate flex items-center'>
